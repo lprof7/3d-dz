@@ -75,14 +75,26 @@ public class AuthService : IAuthService
     public async Task<User?> GetByIdAsync(string userId) =>
         await _userRepo.GetByIdAsync(userId);
 
-    public async Task<User> UpdateProfileAsync(string userId, string? fullName, string? phone)
+    public async Task<User> UpdateProfileAsync(string userId, string? fullName, string? phone, int? wilayaCode)
     {
         var user = await _userRepo.GetByIdAsync(userId)
             ?? throw new InvalidOperationException("User not found");
         if (fullName != null) user.FullName = fullName;
         if (phone != null) user.Phone = phone;
+        if (wilayaCode.HasValue) user.WilayaCode = wilayaCode.Value;
         user.UpdatedAt = DateTime.UtcNow;
         await _userRepo.UpdateAsync(userId, user);
         return user;
+    }
+
+    public async Task ChangePasswordAsync(string userId, string currentPassword, string newPassword)
+    {
+        var user = await _userRepo.GetByIdAsync(userId)
+            ?? throw new InvalidOperationException("User not found");
+        if (!BCrypt.Net.BCrypt.Verify(currentPassword, user.PasswordHash))
+            throw new InvalidOperationException("Current password is incorrect");
+        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
+        user.UpdatedAt = DateTime.UtcNow;
+        await _userRepo.UpdateAsync(userId, user);
     }
 }

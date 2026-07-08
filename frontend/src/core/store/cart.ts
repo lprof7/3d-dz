@@ -52,6 +52,9 @@ export const useCartStore = create<CartState>((set, get) => ({
     get().fetchCart();
   },
 
-  clearCart: () => set({ items: [], total: 0 }),
+  clearCart: async () => {
+    try { await api.post('/cart/clear'); } catch { /* ignore */ }
+    set({ items: [], total: 0 });
+  },
   itemCount: () => get().items.reduce((s, i) => s + i.quantity, 0)
 }));

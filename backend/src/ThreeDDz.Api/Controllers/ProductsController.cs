@@ -24,9 +24,10 @@ public class ProductsController : ControllerBase
         [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
         var skip = (page - 1) * pageSize;
-        var products = await _svc.SearchAsync(q, categoryId, minPrice, maxPrice, minRating, sort, skip, pageSize);
+        var (products, totalCount) = await _svc.SearchWithCountAsync(q, categoryId, minPrice, maxPrice, minRating, sort, skip, pageSize);
         var result = await MapProductsAsync(products);
-        return Ok(new { items = result, page, pageSize });
+        var totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
+        return Ok(new { items = result, totalCount, page, pageSize, totalPages });
     }
 
     [HttpGet("featured")]
@@ -151,7 +152,7 @@ public class ProductsController : ControllerBase
         p.DiscountPercent, p.DiscountStart, p.DiscountEnd,
         p.CategoryId, p.CollectionIds, p.Images, p.FileFormats,
         p.FileSizeMb, p.License, p.IsFeatured, p.IsPublished,
-        p.IsDeleted, p.CreatedAt
+        p.IsDeleted, p.CreatedAt, p.AvgRating, p.ReviewCount
     };
 
     private static object MapReview(Review r) => new

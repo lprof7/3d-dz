@@ -55,6 +55,9 @@ public class ProductService : IProductService
     public Task<List<Product>> SearchAsync(string? text, string? categoryId, decimal? minPrice, decimal? maxPrice, int? minRating, string sort, int skip, int take) =>
         _productRepo.SearchAsync(text, categoryId, minPrice, maxPrice, minRating, sort, skip, take);
 
+    public Task<(List<Product> Items, long TotalCount)> SearchWithCountAsync(string? text, string? categoryId, decimal? minPrice, decimal? maxPrice, int? minRating, string sort, int skip, int take) =>
+        _productRepo.SearchWithCountAsync(text, categoryId, minPrice, maxPrice, minRating, sort, skip, take);
+
     public async Task<Product?> GetByIdAsync(string id) => await _productRepo.GetByIdAsync(id);
 
     public Task<Product?> GetBySlugAsync(string slug) => _productRepo.FirstOrDefaultAsync(p => p.Slug == slug);

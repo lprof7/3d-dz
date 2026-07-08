@@ -5,7 +5,7 @@ import { useCartStore } from '../../../core/store/cart';
 
 export default function Cart() {
   const { t } = useTranslation();
-  const { items, total, loading, fetchCart, removeItem, updateQuantity, itemCount } = useCartStore();
+  const { items, total, loading, fetchCart, removeItem, updateQuantity, itemCount, clearCart } = useCartStore();
 
   useEffect(() => { fetchCart(); }, []);
 
@@ -23,7 +23,13 @@ export default function Cart() {
 
   return (
     <div className="mx-auto px-4 md:px-10 pt-24 pb-16" style={{ maxWidth: '1440px' }}>
-      <h1 className="text-headline-md mb-8">{t('cart.title')} ({itemCount()})</h1>
+      <div className="flex items-center justify-between mb-8">
+        <h1 className="text-headline-md">{t('cart.title')} ({itemCount()})</h1>
+        <button onClick={clearCart} className="flex items-center gap-1 text-outline hover:text-error text-body-sm">
+          <span className="material-symbols-outlined text-lg">delete_sweep</span>
+          {t('cart.clear')}
+        </button>
+      </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-4">
           {items.map(item => (

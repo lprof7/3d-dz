@@ -57,8 +57,21 @@ public class AuthController : ControllerBase
         var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "";
         try
         {
-            var user = await _auth.UpdateProfileAsync(userId, r.FullName, r.Phone);
+            var user = await _auth.UpdateProfileAsync(userId, r.FullName, r.Phone, r.WilayaCode);
             return Ok(new { user = MapUser(user) });
+        }
+        catch (InvalidOperationException e) { return BadRequest(new { error = e.Message }); }
+    }
+
+    [Authorize]
+    [HttpPut("password")]
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest r)
+    {
+        var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "";
+        try
+        {
+            await _auth.ChangePasswordAsync(userId, r.CurrentPassword, r.NewPassword);
+            return Ok(new { message = "Password changed" });
         }
         catch (InvalidOperationException e) { return BadRequest(new { error = e.Message }); }
     }
@@ -84,4 +97,5 @@ public record RegisterRequest(string FullName, string Email, string Password, st
 public record LoginRequest(string Email, string Password);
 public record ForgotRequest(string Email);
 public record ResetRequest(string Token, string NewPassword);
-public record ProfileUpdateRequest(string? FullName, string? Phone);
+public record ProfileUpdateRequest(string? FullName, string? Phone, int? WilayaCode);
+public record ChangePasswordRequest(string CurrentPassword, string NewPassword);

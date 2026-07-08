@@ -11,6 +11,7 @@
     <ProjectReference Include="..\ThreeDDz.Infrastructure\ThreeDDz.Infrastructure.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="FluentValidation.AspNetCore" Version="11.3.1" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.0" />
   </ItemGroup>
 </Project>

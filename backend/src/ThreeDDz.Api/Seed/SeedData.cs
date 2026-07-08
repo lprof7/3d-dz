@@ -1,6 +1,8 @@
+using MongoDB.Driver;
 using ThreeDDz.Application.Interfaces;
 using ThreeDDz.Domain.Enums;
 using ThreeDDz.Domain.Models;
+using ThreeDDz.Infrastructure.Repositories;
 
 namespace ThreeDDz.Api.Seed;
 
@@ -308,5 +310,36 @@ public static class SeedData
             p.Images = p.Images.Count > 0 ? p.Images : new List<string> { $"https://picsum.photos/seed/{Guid.NewGuid().ToString("N")[..8]}/800/800" };
         }
         return products;
+    }
+
+    public static async Task EnsureIndexesAsync(IServiceProvider sp, MongoContext mongo)
+    {
+        var products = mongo.Database.GetCollection<Product>("Products");
+        var orders = mongo.Database.GetCollection<Order>("Orders");
+
+        // Text index for product search (name + description in all languages)
+        var textKeys = Builders<Product>.IndexKeys
+            .Text("name.ar").Text("name.fr").Text("name.en")
+            .Text("description.ar").Text("description.fr").Text("description.en");
+        var textIndexModel = new CreateIndexModel<Product>(textKeys, new CreateIndexOptions { Name = "product_search_text" });
+        try { await products.Indexes.CreateOneAsync(textIndexModel); }
+        catch { /* already exists */ }
+
+        // Indexes for order filtering
+        var orderStatusIndex = Builders<Order>.IndexKeys.Ascending(o => o.Status).Descending(o => o.CreatedAt);
+        var orderStatusIndexModel = new CreateIndexModel<Order>(orderStatusIndex, new CreateIndexOptions { Name = "order_status_created" });
+        try { await orders.Indexes.CreateOneAsync(orderStatusIndexModel); }
+        catch { }
+
+        var orderCustomerIndex = Builders<Order>.IndexKeys.Ascending(o => o.CustomerId).Descending(o => o.CreatedAt);
+        var orderCustomerIndexModel = new CreateIndexModel<Order>(orderCustomerIndex, new CreateIndexOptions { Name = "order_customer_created" });
+        try { await orders.Indexes.CreateOneAsync(orderCustomerIndexModel); }
+        catch { }
+
+        // Index for product listing
+        var productListIndex = Builders<Product>.IndexKeys.Ascending(p => p.IsDeleted).Ascending(p => p.IsPublished).Descending(p => p.CreatedAt);
+        var productListIndexModel = new CreateIndexModel<Product>(productListIndex, new CreateIndexOptions { Name = "product_list" });
+        try { await products.Indexes.CreateOneAsync(productListIndexModel); }
+        catch { }
     }
 }

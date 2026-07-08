@@ -1,6 +1,8 @@
+using MongoDB.Driver;
 using ThreeDDz.Application.Interfaces;
 using ThreeDDz.Domain.Enums;
 using ThreeDDz.Domain.Models;
+using ThreeDDz.Infrastructure.Repositories;
 
 namespace ThreeDDz.Infrastructure.Services;
 
@@ -10,14 +12,16 @@ public class OrderService : IOrderService
     private readonly IProductRepository _productRepo;
     private readonly ICartRepository _cartRepo;
     private readonly INotificationService _notif;
+    private readonly MongoContext _mongo;
 
     public OrderService(IOrderRepository orderRepo, IProductRepository productRepo,
-        ICartRepository cartRepo, INotificationService notif)
+        ICartRepository cartRepo, INotificationService notif, MongoContext mongo)
     {
         _orderRepo = orderRepo;
         _productRepo = productRepo;
         _cartRepo = cartRepo;
         _notif = notif;
+        _mongo = mongo;
     }
 
     public async Task<Order> PlaceAsync(string customerId, Order order)
@@ -47,7 +51,7 @@ public class OrderService : IOrderService
         order.Items = orderItems;
         order.SubTotal = orderItems.Sum(i => i.LineTotal);
         order.Total = order.SubTotal;
-        order.Reference = GenerateReference();
+        order.Reference = await GenerateReferenceAsync();
         order.CreatedAt = DateTime.UtcNow;
         order.UpdatedAt = DateTime.UtcNow;
         order.Status = OrderStatus.Pending;
@@ -56,11 +60,20 @@ public class OrderService : IOrderService
             new() { Text = "Order created", CreatedAt = DateTime.UtcNow, AdminId = customerId }
         };
 
-        await _orderRepo.InsertAsync(order);
-
-        // Clear cart after successful order
-        cart.Items.Clear();
-        await _cartRepo.UpdateAsync(cart.Id, cart);
+        using var session = await _mongo.Client.StartSessionAsync();
+        session.StartTransaction();
+        try
+        {
+            await _orderRepo.InsertAsync(order);
+            cart.Items.Clear();
+            await _cartRepo.UpdateAsync(cart.Id, cart);
+            await session.CommitTransactionAsync();
+        }
+        catch
+        {
+            await session.AbortTransactionAsync();
+            throw;
+        }
 
         await _notif.OrderReceivedAsync(order);
         await _notif.AdminNewOrderAsync(order);
@@ -74,6 +87,9 @@ public class OrderService : IOrderService
 
     public async Task<Order> ChangeStatusAsync(string id, int status, string adminUserId)
     {
+        if (!Enum.IsDefined(typeof(OrderStatus), status))
+            throw new InvalidOperationException("Invalid order status");
+
         var order = await _orderRepo.GetByIdAsync(id)
             ?? throw new InvalidOperationException("Order not found");
 
@@ -107,35 +123,12 @@ public class OrderService : IOrderService
         return order;
     }
 
-    public async Task<List<Order>> GetByFilterAsync(OrderFilter filter)
+    public Task<List<Order>> GetByFilterAsync(OrderFilter filter) =>
+        _orderRepo.GetByFilterAsync(filter);
+
+    private async Task<string> GenerateReferenceAsync()
     {
-        var all = await _orderRepo.GetAllAsync();
-        var query = all.AsEnumerable();
-
-        if (filter.Status.HasValue)
-            query = query.Where(o => o.Status == filter.Status.Value);
-        if (filter.WilayaCode.HasValue)
-            query = query.Where(o => o.WilayaCode == filter.WilayaCode.Value);
-        if (filter.FromDate.HasValue)
-            query = query.Where(o => o.CreatedAt >= filter.FromDate.Value);
-        if (filter.ToDate.HasValue)
-            query = query.Where(o => o.CreatedAt <= filter.ToDate.Value);
-        if (!string.IsNullOrWhiteSpace(filter.Search))
-        {
-            var s = filter.Search.ToLowerInvariant();
-            query = query.Where(o =>
-                o.CustomerFullName.ToLowerInvariant().Contains(s) ||
-                o.Reference.ToLowerInvariant().Contains(s));
-        }
-
-        return query.OrderByDescending(o => o.CreatedAt)
-            .Skip(filter.Skip).Take(filter.Take).ToList();
-    }
-
-    private static int _refCounter = 0;
-    private static string GenerateReference()
-    {
-        Interlocked.Increment(ref _refCounter);
-        return $"3DZ-{DateTime.UtcNow:yyyyMMdd}-{_refCounter:D4}";
+        var todayCount = await _orderRepo.GetTodayCountAsync();
+        return $"3DZ-{DateTime.UtcNow:yyyyMMdd}-{(todayCount + 1):D4}";
     }
 }

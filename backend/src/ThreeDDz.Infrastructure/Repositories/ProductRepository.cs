@@ -1,5 +1,6 @@
 using MongoDB.Driver;
 using ThreeDDz.Application.Interfaces;
+using ThreeDDz.Domain.Enums;
 using ThreeDDz.Domain.Models;
 
 namespace ThreeDDz.Infrastructure.Repositories;
@@ -8,8 +9,8 @@ public class ProductRepository : MongoRepository<Product>, IProductRepository
 {
     public ProductRepository(MongoContext context) : base(context) { }
 
-    public async Task<List<Product>> SearchAsync(string? text, string? categoryId,
-        decimal? minPrice, decimal? maxPrice, int? minRating, string sort, int skip, int take)
+    private FilterDefinition<Product> BuildSearchFilter(string? text, string? categoryId,
+        decimal? minPrice, decimal? maxPrice, int? minRating)
     {
         var filters = new List<FilterDefinition<Product>>
         {
@@ -35,21 +36,49 @@ public class ProductRepository : MongoRepository<Product>, IProductRepository
             filters.Add(Builders<Product>.Filter.Gte(p => p.Price, minPrice.Value));
         if (maxPrice.HasValue)
             filters.Add(Builders<Product>.Filter.Lte(p => p.Price, maxPrice.Value));
+        if (minRating.HasValue)
+            filters.Add(Builders<Product>.Filter.Gte(p => p.AvgRating, minRating.Value));
 
-        var combined = filters.Count > 1
+        return filters.Count > 1
             ? Builders<Product>.Filter.And(filters)
             : filters[0];
+    }
 
-        var sortDef = sort switch
-        {
-            "price_asc" => Builders<Product>.Sort.Ascending(p => p.Price),
-            "price_desc" => Builders<Product>.Sort.Descending(p => p.Price),
-            "oldest" => Builders<Product>.Sort.Ascending(p => p.CreatedAt),
-            _ => Builders<Product>.Sort.Descending(p => p.CreatedAt)
-        };
+    public async Task<List<Product>> SearchAsync(string? text, string? categoryId,
+        decimal? minPrice, decimal? maxPrice, int? minRating, string sort, int skip, int take)
+    {
+        var combined = BuildSearchFilter(text, categoryId, minPrice, maxPrice, minRating);
+
+        var sortDef = SortFromString(sort);
 
         return await Collection.Find(combined)
             .Sort(sortDef).Skip(skip).Limit(take).ToListAsync();
+    }
+
+    private static SortDefinition<Product> SortFromString(string sort) => sort switch
+    {
+        "price_asc" or "price-asc" => Builders<Product>.Sort.Ascending(p => p.Price),
+        "price_desc" or "price-desc" => Builders<Product>.Sort.Descending(p => p.Price),
+        "rating_desc" or "rating-desc" => Builders<Product>.Sort
+            .Descending(p => p.AvgRating)
+            .Descending(p => p.ReviewCount),
+        "oldest" => Builders<Product>.Sort.Ascending(p => p.CreatedAt),
+        _ => Builders<Product>.Sort.Descending(p => p.CreatedAt)
+    };
+
+    public async Task<(List<Product> Items, long TotalCount)> SearchWithCountAsync(string? text, string? categoryId,
+        decimal? minPrice, decimal? maxPrice, int? minRating, string sort, int skip, int take)
+    {
+        var combined = BuildSearchFilter(text, categoryId, minPrice, maxPrice, minRating);
+
+        var sortDef = SortFromString(sort);
+
+        var countTask = Collection.CountDocumentsAsync(combined);
+        var itemsTask = Collection.Find(combined)
+            .Sort(sortDef).Skip(skip).Limit(take).ToListAsync();
+
+        await Task.WhenAll(countTask, itemsTask);
+        return (itemsTask.Result, countTask.Result);
     }
 
     public async Task<List<Product>> GetFeaturedAsync(int take) =>
@@ -74,4 +103,18 @@ public class ProductRepository : MongoRepository<Product>, IProductRepository
 
     public async Task<List<Product>> GetForAnalyticsAsync() =>
         await Collection.Find(p => !p.IsDeleted).ToListAsync();
+
+    public async Task UpdateAvgRatingAsync(string productId)
+    {
+        var reviewsColl = Context.Database.GetCollection<Review>("Reviews");
+        var approved = await reviewsColl.Find(r => r.ProductId == productId && r.Status == ReviewStatus.Approved).ToListAsync();
+
+        double avg = approved.Count > 0 ? approved.Average(r => r.Rating) : 0;
+        var filter = Builders<Product>.Filter.Eq(p => p.Id, productId);
+        var update = Builders<Product>.Update
+            .Set(p => p.AvgRating, Math.Round(avg, 1))
+            .Set(p => p.ReviewCount, approved.Count);
+
+        await Collection.UpdateOneAsync(filter, update);
+    }
 }

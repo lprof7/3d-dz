@@ -1,8 +1,14 @@
+export interface LocalizedString {
+  ar?: string;
+  en?: string;
+  fr?: string;
+}
+
 export interface Product {
   id: string;
   slug: string;
-  name: string;
-  description: string;
+  name: string | LocalizedString;
+  description: string | LocalizedString;
   price: number;
   effectivePrice: number;
   currency: string;
@@ -16,6 +22,8 @@ export interface Product {
   isPublished: boolean;
   createdAt: string;
   discountPercent?: number;
+  discountStart?: string;
+  discountEnd?: string;
   avgRating?: number;
   reviewCount?: number;
 }
@@ -101,6 +109,7 @@ export interface Banner {
   subtitle?: string;
   imageUrl: string;
   linkUrl?: string;
+  ctaText?: string;
   isActive: boolean;
   sortOrder: number;
 }

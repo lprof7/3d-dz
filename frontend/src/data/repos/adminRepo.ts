@@ -2,7 +2,7 @@ import api from '../../core/api/client';
 import type { Order, Review, Customer, Category, Collection, Banner, Product } from '../types';
 
 export const adminRepo = {
-  getOrders: (params?: { status?: string; search?: string; page?: number }) =>
+  getOrders: (params?: { status?: string; search?: string; page?: number; customerId?: string; fromDate?: string; toDate?: string }) =>
     api.get('/admin/orders', { params }).then(r => ({ items: r.data.items as Order[], total: r.data.total })),
   getOrder: (id: string) => api.get(`/admin/orders/${id}`).then(r => r.data as Order),
   updateOrderStatus: (id: string, status: number) =>
@@ -20,6 +20,13 @@ export const adminRepo = {
   getAllBanners: () => api.get('/banners').then(r => r.data.items as Banner[]),
   upsertBanner: (data: Partial<Banner>) => api.post('/banners', data).then(r => r.data as Banner),
   deleteBanner: (id: string) => api.delete(`/banners/${id}`),
+  getNotifications: (params?: { since?: string }) =>
+    api.get('/admin/notifications', { params }).then(r => ({ pendingCount: r.data.pendingCount as number, lastOrderAt: r.data.lastOrderAt as string })),
+  upload: (file: File) => {
+    const fd = new FormData();
+    fd.append('file', file);
+    return api.post('/upload', fd).then(r => r.data.url as string);
+  },
 };
 
 export const reviewAdmin = {

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { orderRepo, wilayaRepo } from '../../../data/repos/orderRepo';
+import api from '../../../core/api/client';
 import { useCartStore } from '../../../core/store/cart';
 import { useAuthStore } from '../../../core/auth/store';
 import type { Wilaya } from '../../../data/types';
@@ -15,6 +16,20 @@ export default function Checkout() {
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState<{ reference: string } | null>(null);
   const [form, setForm] = useState({ fullName: '', email: '', phone: '', wilayaId: '', wilayaName: '' });
+  const [availError, setAvailError] = useState('');
+
+  useEffect(() => {
+    if (items.length === 0) return;
+    (async () => {
+      const results = await Promise.all(items.map(item =>
+        api.get(`/products/${item.productId}`).then(r => r.data.product).catch(() => null)
+      ));
+      const unavailable = items.filter((_, i) => results[i] == null);
+      setAvailError(unavailable.length > 0
+        ? `${t('checkout.unavailableWarning')}: ${unavailable.map(i => i.productName).join(', ')}`
+        : '');
+    })();
+  }, [items]);
 
   useEffect(() => {
     fetchCart();
@@ -59,6 +74,15 @@ export default function Checkout() {
   return (
     <div className="mx-auto px-4 md:px-10 pt-24 pb-16" style={{ maxWidth: '1440px' }}>
       <h1 className="text-headline-md mb-8">{t('checkout.title')}</h1>
+      {availError && (
+        <div className="bg-error-container text-on-error-container p-4 rounded-lg mb-6 flex items-center gap-3">
+          <span className="material-symbols-outlined">warning</span>
+          <div>
+            <p className="font-semibold">{t('checkout.unavailableWarning')}</p>
+            <p className="text-body-sm">{availError}</p>
+          </div>
+        </div>
+      )}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -88,7 +112,7 @@ export default function Checkout() {
               {wilayas.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
             </select>
           </div>
-          <button type="submit" disabled={submitting || items.length === 0}
+          <button type="submit" disabled={submitting || items.length === 0 || !!availError}
             className="w-full bg-primary text-on-primary py-3 rounded-lg font-semibold hover:opacity-90 disabled:opacity-50"
           >
             {submitting ? t('common.loading') : t('checkout.placeOrder')}

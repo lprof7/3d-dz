@@ -2,8 +2,8 @@ import api from '../../core/api/client';
 import type { Product } from '../types';
 
 export const productRepo = {
-  getAll: (params?: { categoryId?: string; search?: string; page?: number; pageSize?: number }) =>
-    api.get('/products/search', { params: { ...params, q: params?.search, search: undefined } }).then(r => r.data.items as Product[]),
+  getAll: (params?: { categoryId?: string; search?: string; page?: number; pageSize?: number; sort?: string; minPrice?: string; maxPrice?: string }) =>
+    api.get('/products/search', { params: { ...params, q: params?.search, search: undefined } }).then(r => r.data as { items: Product[]; totalPages: number }),
 
   getFeatured: () =>
     api.get('/products/featured').then(r => r.data.items as Product[]),

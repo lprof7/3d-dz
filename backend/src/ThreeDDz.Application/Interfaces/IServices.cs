@@ -10,7 +10,8 @@ public interface IAuthService
     Task RequestPasswordResetAsync(string email);
     Task<bool> ResetPasswordAsync(string token, string newPassword);
     Task<User?> GetByIdAsync(string userId);
-    Task<User> UpdateProfileAsync(string userId, string? fullName, string? phone);
+    Task<User> UpdateProfileAsync(string userId, string? fullName, string? phone, int? wilayaCode);
+    Task ChangePasswordAsync(string userId, string currentPassword, string newPassword);
 }
 
 public interface IProductService
@@ -20,6 +21,7 @@ public interface IProductService
     Task SoftDeleteAsync(string id);
     Task ToggleFeaturedAsync(string id);
     Task<List<Product>> SearchAsync(string? text, string? categoryId, decimal? minPrice, decimal? maxPrice, int? minRating, string sort, int skip, int take);
+    Task<(List<Product> Items, long TotalCount)> SearchWithCountAsync(string? text, string? categoryId, decimal? minPrice, decimal? maxPrice, int? minRating, string sort, int skip, int take);
     Task<Product?> GetByIdAsync(string id);
     Task<Product?> GetBySlugAsync(string slug);
     Task<List<Product>> GetFeaturedAsync(int take = 8);
@@ -66,6 +68,7 @@ public class OrderFilter
     public DateTime? FromDate { get; set; }
     public DateTime? ToDate { get; set; }
     public string? Search { get; set; }
+    public string? CustomerId { get; set; }
     public int Skip { get; set; } = 0;
     public int Take { get; set; } = 50;
 }
@@ -77,6 +80,7 @@ public interface IReviewService
     Task<Review> ChangeStatusAsync(string id, int status);
     Task<List<Review>> GetPendingAsync();
     Task<List<Review>> GetAllAsync();
+    Task<bool> CanReviewAsync(string customerId, string productId);
 }
 
 public interface IFavoriteService

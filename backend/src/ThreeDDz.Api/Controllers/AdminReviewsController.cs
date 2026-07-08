@@ -34,6 +34,14 @@ public class ReviewsController : ControllerBase
         var reviews = await _svc.GetForProductAsync(productId);
         return Ok(new { items = reviews });
     }
+
+    [Authorize]
+    [HttpGet("can-review/{productId}")]
+    public async Task<IActionResult> CanReview(string productId)
+    {
+        var can = await _svc.CanReviewAsync(UserId, productId);
+        return Ok(new { canReview = can });
+    }
 }
 
 [Authorize(Roles = "Admin")]
@@ -45,25 +53,33 @@ public class AdminController : ControllerBase
     private readonly IReviewService _reviewSvc;
     private readonly IUserRepository _userRepo;
     private readonly IProductRepository _productRepo;
+    private readonly IOrderRepository _orderRepo;
     private readonly IAnalyticsService _analytics;
     private string AdminId => User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "";
 
     public AdminController(IOrderService orderSvc, IReviewService reviewSvc,
-        IUserRepository userRepo, IProductRepository productRepo, IAnalyticsService analytics)
+        IUserRepository userRepo, IProductRepository productRepo,
+        IOrderRepository orderRepo, IAnalyticsService analytics)
     {
         _orderSvc = orderSvc; _reviewSvc = reviewSvc;
-        _userRepo = userRepo; _productRepo = productRepo; _analytics = analytics;
+        _userRepo = userRepo; _productRepo = productRepo;
+        _orderRepo = orderRepo; _analytics = analytics;
     }
 
     [HttpGet("orders")]
     public async Task<IActionResult> GetOrders(
         [FromQuery] string? status, [FromQuery] int? wilayaCode,
-        [FromQuery] string? search, [FromQuery] int page = 1, int pageSize = 50)
+        [FromQuery] string? search, [FromQuery] string? customerId,
+        [FromQuery] DateTime? fromDate, [FromQuery] DateTime? toDate,
+        [FromQuery] int page = 1, int pageSize = 50)
     {
         var filter = new OrderFilter
         {
             Search = search,
             WilayaCode = wilayaCode,
+            CustomerId = customerId,
+            FromDate = fromDate,
+            ToDate = toDate,
             Skip = (page - 1) * pageSize,
             Take = pageSize
         };
@@ -99,7 +115,13 @@ public class AdminController : ControllerBase
     {
         var users = await _userRepo.GetAllAsync();
         var customers = users.Where(u => u.Role == UserRole.Customer).ToList();
-        return Ok(new { items = customers });
+        var orderCounts = await _orderRepo.GetCountPerCustomerAsync();
+        var result = customers.Select(c => new
+        {
+            c.Id, c.FullName, c.Email, c.Phone, c.IsBanned, c.CreatedAt,
+            OrderCount = orderCounts.TryGetValue(c.Id, out var count) ? count : 0
+        });
+        return Ok(new { items = result });
     }
 
     [HttpPatch("customers/{id}/ban")]
@@ -133,6 +155,17 @@ public class AdminController : ControllerBase
     {
         var all = await _productRepo.GetAllAsync();
         return Ok(new { items = all });
+    }
+
+    [HttpGet("notifications")]
+    public async Task<IActionResult> Notifications([FromQuery] DateTime? since)
+    {
+        var orders = await _orderSvc.GetByFilterAsync(new OrderFilter
+        {
+            Status = OrderStatus.Pending,
+            FromDate = since ?? DateTime.UtcNow.AddDays(-7)
+        });
+        return Ok(new { pendingCount = orders.Count, lastOrderAt = orders.FirstOrDefault()?.CreatedAt });
     }
 }
 

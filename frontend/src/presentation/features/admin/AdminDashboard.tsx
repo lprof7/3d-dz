@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { adminRepo, reviewAdmin } from '../../../data/repos/adminRepo';
 import { productRepo } from '../../../data/repos/productRepo';
 import { categoryRepo, collectionRepo } from '../../../data/repos/categoryRepo';
+import api from '../../../core/api/client';
 import type { Product, Order, Review, Customer, Category, Collection, Banner } from '../../../data/types';
 
 const statusColors = ['bg-yellow-600/20 text-yellow-300', 'bg-green-600/20 text-green-300', 'bg-red-600/20 text-red-300', 'bg-blue-600/20 text-blue-300'];
@@ -14,12 +15,35 @@ export default function AdminDashboard() {
   const { t } = useTranslation();
   const [tab, setTab] = useState<Tab>('analytics');
   const [loading, setLoading] = useState(true);
+  const [pendingNotif, setPendingNotif] = useState(0);
+
+  useEffect(() => {
+    adminRepo.getNotifications({ since: new Date(Date.now() - 86400000).toISOString() })
+      .then(r => setPendingNotif(r.pendingCount))
+      .catch(() => {});
+    const interval = setInterval(() => {
+      adminRepo.getNotifications({ since: new Date(Date.now() - 86400000).toISOString() })
+        .then(r => setPendingNotif(r.pendingCount))
+        .catch(() => {});
+    }, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div className="mx-auto px-4 md:px-10 pt-24 pb-16" style={{ maxWidth: '1440px' }}>
-      <div className="flex items-center gap-3 mb-8">
-        <span className="material-symbols-outlined text-primary text-2xl">admin_panel_settings</span>
-        <h1 className="text-headline-md">{t('admin.dashboard')}</h1>
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center gap-3">
+          <span className="material-symbols-outlined text-primary text-2xl">admin_panel_settings</span>
+          <h1 className="text-headline-md">{t('admin.dashboard')}</h1>
+        </div>
+        <button onClick={() => setTab('orders')} className="relative" title={t('admin.pendingOrders')}>
+          <span className="material-symbols-outlined text-outline">notifications</span>
+          {pendingNotif > 0 && (
+            <span className="absolute -top-1 -right-1 bg-error text-on-error text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
+              {pendingNotif > 9 ? '9+' : pendingNotif}
+            </span>
+          )}
+        </button>
       </div>
 
       <div className="flex gap-2 mb-6 flex-wrap">
@@ -58,16 +82,30 @@ function AnalyticsTab() {
   const { t } = useTranslation();
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [analyticsFrom, setAnalyticsFrom] = useState('');
+  const [analyticsTo, setAnalyticsTo] = useState('');
 
-  useEffect(() => {
-    adminRepo.getAnalytics().then(setStats).finally(() => setLoading(false));
-  }, []);
+  const load = useCallback(() => {
+    setLoading(true);
+    adminRepo.getAnalytics({
+      from: analyticsFrom || undefined,
+      to: analyticsTo || undefined
+    }).then(setStats).finally(() => setLoading(false));
+  }, [analyticsFrom, analyticsTo]);
+
+  useEffect(() => { load(); }, [load]);
 
   if (loading) return <LoadingSpinner />;
   if (!stats) return <p className="text-center py-16 text-on-surface-variant">{t('admin.noData')}</p>;
 
   return (
     <div>
+      <div className="flex items-center gap-3 mb-4">
+        <input type="date" value={analyticsFrom} onChange={e => setAnalyticsFrom(e.target.value)}
+          className="bg-surface-container text-on-surface border border-outline-variant rounded px-3 py-2 text-body-sm" aria-label="From date" />
+        <input type="date" value={analyticsTo} onChange={e => setAnalyticsTo(e.target.value)}
+          className="bg-surface-container text-on-surface border border-outline-variant rounded px-3 py-2 text-body-sm" aria-label="To date" />
+      </div>
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
         <StatCard label={t('admin.totalOrders')} value={stats.totalOrders} />
         <StatCard label={t('admin.pendingOrders')} value={stats.pendingOrders} />
@@ -127,8 +165,12 @@ function ProductsTab() {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<Product | null>(null);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState<Partial<Product>>({});
+  const [form, setForm] = useState<any>({});
   const [saving, setSaving] = useState(false);
+  const [nameLang, setNameLang] = useState('ar');
+  const [descLang, setDescLang] = useState('ar');
+  const [productSearch, setProductSearch] = useState('');
+  const [productCategoryFilter, setProductCategoryFilter] = useState('');
 
   const load = useCallback(() => {
     setLoading(true);
@@ -139,9 +181,22 @@ function ProductsTab() {
 
   useEffect(() => { load(); }, [load]);
 
+  const getLocalized = (obj: any, lang: string) => {
+    if (!obj) return '';
+    if (typeof obj === 'string') return obj;
+    return obj[lang] || '';
+  };
+  const setLocalized = (field: string, lang: string, value: string) => {
+    setForm((f: any) => {
+      const current = typeof f[field] === 'string' ? {} : { ...(f[field] || {}) };
+      current[lang] = value;
+      return { ...f, [field]: current };
+    });
+  };
+
   const openNew = () => {
     setEditing(null);
-    setForm({ name: '', description: '', price: 0, categoryId: '', images: [], fileFormats: [], license: 'Personal Use', isPublished: true, isFeatured: false, currency: 'DA' });
+    setForm({ name: { ar: '', en: '', fr: '' }, description: { ar: '', en: '', fr: '' }, price: 0, categoryId: '', images: [], fileFormats: [], license: 'Personal Use', isPublished: true, isFeatured: false, currency: 'DZD', discountPercent: 0, discountStart: '', discountEnd: '' });
     setShowForm(true);
   };
   const openEdit = (p: Product) => {
@@ -161,15 +216,42 @@ function ProductsTab() {
     finally { setSaving(false); }
   };
 
+  const langTabs = (lang: string, setLang: (l: string) => void) => (
+    <div className="flex gap-1 mb-1">
+      {['ar', 'fr', 'en'].map(l => (
+        <button key={l} type="button" onClick={() => setLang(l)}
+          className={`px-2 py-0.5 rounded text-xs ${lang === l ? 'bg-primary text-on-primary' : 'bg-surface-container text-outline'}`}>
+          {l === 'ar' ? 'العربية' : l === 'fr' ? 'Français' : 'English'}
+        </button>
+      ))}
+    </div>
+  );
+
   if (loading) return <LoadingSpinner />;
+
+  const filteredProducts = products.filter(p => {
+    const name = typeof p.name === 'string' ? p.name : (p.name as any)?.ar || '';
+    if (productSearch && !name.toLowerCase().includes(productSearch.toLowerCase())) return false;
+    if (productCategoryFilter && p.categoryId !== productCategoryFilter) return false;
+    return true;
+  });
 
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <p className="text-body-sm text-outline">{products.length} {t('admin.products')}</p>
+        <p className="text-body-sm text-outline">{filteredProducts.length} {t('admin.products')}</p>
         <button onClick={openNew} className="flex items-center gap-1 bg-primary text-on-primary px-4 py-2 rounded-lg text-body-sm font-semibold">
           <span className="material-symbols-outlined text-lg">add</span> {t('admin.addProduct')}
         </button>
+      </div>
+      <div className="flex items-center gap-3 mb-4">
+        <input value={productSearch} onChange={e => setProductSearch(e.target.value)} placeholder={t('admin.search')}
+          className="bg-surface-container text-on-surface border border-outline-variant rounded px-3 py-2 text-body-sm flex-1 min-w-[200px]" />
+        <select value={productCategoryFilter} onChange={e => setProductCategoryFilter(e.target.value)}
+          className="bg-surface-container text-on-surface border border-outline-variant rounded px-3 py-2 text-body-sm">
+          <option value="">{t('common.all')}</option>
+          {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+        </select>
       </div>
 
       {showForm && (
@@ -178,33 +260,81 @@ function ProductsTab() {
           <div className="rounded-lg p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto" style={{ backgroundColor: '#1e1f25' }}>
             <h2 className="text-headline-md mb-4">{editing ? t('admin.editProduct') : t('admin.addProduct')}</h2>
             <div className="space-y-3">
-              <input placeholder={t('auth.fullName')} value={form.name || ''} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+              {langTabs(nameLang, setNameLang)}
+              <input placeholder={`${t('auth.fullName')} (${nameLang})`}
+                value={getLocalized(form.name, nameLang)}
+                onChange={e => setLocalized('name', nameLang, e.target.value)}
                 className="w-full bg-surface-variant text-on-surface rounded px-4 py-3 text-body-sm outline-none focus:ring-1 focus:ring-primary" />
-              <textarea placeholder={t('product.description')} value={form.description || ''} onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
+              {langTabs(descLang, setDescLang)}
+              <textarea placeholder={`${t('product.description')} (${descLang})`}
+                value={getLocalized(form.description, descLang)}
+                onChange={e => setLocalized('description', descLang, e.target.value)}
                 className="w-full bg-surface-variant text-on-surface rounded px-4 py-3 text-body-sm outline-none focus:ring-1 focus:ring-primary min-h-[80px]" />
               <div className="grid grid-cols-2 gap-3">
-                <input type="number" placeholder={t('product.price')} value={form.price || 0} onChange={e => setForm(f => ({ ...f, price: Number(e.target.value) }))}
+                <input type="number" placeholder={t('product.price')} value={form.price || 0} onChange={e => setForm((f: any) => ({ ...f, price: Number(e.target.value) }))}
                   className="bg-surface-variant text-on-surface rounded px-4 py-3 text-body-sm outline-none focus:ring-1 focus:ring-primary" />
-                <input type="number" placeholder="Discount %" value={form.discountPercent || 0} onChange={e => setForm(f => ({ ...f, discountPercent: Number(e.target.value) }))}
+                <input type="number" placeholder="Discount %" value={form.discountPercent || 0} onChange={e => setForm((f: any) => ({ ...f, discountPercent: Number(e.target.value) }))}
                   className="bg-surface-variant text-on-surface rounded px-4 py-3 text-body-sm outline-none focus:ring-1 focus:ring-primary" />
               </div>
-              <select value={form.categoryId || ''} onChange={e => setForm(f => ({ ...f, categoryId: e.target.value }))}
+              <div className="grid grid-cols-2 gap-3">
+                <input type="date" placeholder="Discount start" value={form.discountStart || ''} onChange={e => setForm((f: any) => ({ ...f, discountStart: e.target.value || undefined }))}
+                  className="bg-surface-variant text-on-surface rounded px-4 py-3 text-body-sm outline-none focus:ring-1 focus:ring-primary" />
+                <input type="date" placeholder="Discount end" value={form.discountEnd || ''} onChange={e => setForm((f: any) => ({ ...f, discountEnd: e.target.value || undefined }))}
+                  className="bg-surface-variant text-on-surface rounded px-4 py-3 text-body-sm outline-none focus:ring-1 focus:ring-primary" />
+              </div>
+              <select value={form.categoryId || ''} onChange={e => setForm((f: any) => ({ ...f, categoryId: e.target.value }))}
                 className="w-full bg-surface-variant text-on-surface rounded px-4 py-3 text-body-sm outline-none">
                 <option value="">{t('nav.categories')}</option>
                 {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
+              <div>
+                <label className="block text-outline text-body-sm mb-1">{t('product.images')}</label>
+                <div className="flex gap-2 flex-wrap mb-2">
+                  {(form.images || []).map((url: string, i: number) => (
+                    <div key={i} className="relative w-16 h-16 rounded overflow-hidden" style={{ backgroundColor: '#282a2f' }}>
+                      <img src={url} alt="" className="w-full h-full object-cover" />
+                      <button type="button" onClick={() => setForm((f: any) => ({ ...f, images: f.images.filter((_: any, j: number) => j !== i) }))}
+                        className="absolute top-0 right-0 bg-error/80 text-white text-xs w-4 h-4 flex items-center justify-center rounded-bl">
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                <input type="text" placeholder="Image URL" value={form._newImage || ''}
+                  onChange={e => setForm((f: any) => ({ ...f, _newImage: e.target.value }))}
+                  className="w-full bg-surface-variant text-on-surface rounded px-4 py-3 text-body-sm outline-none focus:ring-1 focus:ring-primary" />
+                <div className="flex gap-2 mt-2">
+                  <button type="button" onClick={() => {
+                    if (form._newImage) setForm((f: any) => ({ ...f, images: [...(f.images || []), f._newImage], _newImage: '' }));
+                  }} className="bg-surface-container text-on-surface px-3 py-1.5 rounded text-body-sm">
+                    {t('admin.add')}
+                  </button>
+                  <label className="bg-surface-container text-on-surface px-3 py-1.5 rounded text-body-sm cursor-pointer">
+                    {t('admin.upload')}
+                    <input type="file" accept="image/*" hidden onChange={async e => {
+                      const file = e.target.files?.[0]; if (!file) return;
+                      const fd = new FormData(); fd.append('file', file);
+                      try {
+                        const res = await api.post('/upload', fd);
+                        const url = res.data.url;
+                        setForm((f: any) => ({ ...f, images: [...(f.images || []), url] }));
+                      } catch { alert(t('common.error')); }
+                    }} />
+                  </label>
+                </div>
+              </div>
               <div className="flex items-center gap-4">
                 <label className="flex items-center gap-2 text-body-sm">
-                  <input type="checkbox" checked={form.isFeatured || false} onChange={e => setForm(f => ({ ...f, isFeatured: e.target.checked }))} />
+                  <input type="checkbox" checked={form.isFeatured || false} onChange={e => setForm((f: any) => ({ ...f, isFeatured: e.target.checked }))} />
                   {t('admin.featured')}
                 </label>
                 <label className="flex items-center gap-2 text-body-sm">
-                  <input type="checkbox" checked={form.isPublished ?? true} onChange={e => setForm(f => ({ ...f, isPublished: e.target.checked }))} />
+                  <input type="checkbox" checked={form.isPublished ?? true} onChange={e => setForm((f: any) => ({ ...f, isPublished: e.target.checked }))} />
                   Published
                 </label>
               </div>
               <div className="flex gap-3 pt-2">
-                <button onClick={save} disabled={saving || !form.name}
+                <button onClick={save} disabled={saving || !getLocalized(form.name, 'ar')}
                   className="flex-1 bg-primary text-on-primary py-3 rounded-lg font-semibold disabled:opacity-50">
                   {saving ? t('common.loading') : t('admin.save')}
                 </button>
@@ -218,33 +348,36 @@ function ProductsTab() {
       )}
 
       <div className="space-y-2">
-        {products.map(p => (
-          <div key={p.id} className="rounded-lg p-4 flex items-center gap-4" style={{ backgroundColor: '#1e1f25' }}>
-            {p.images?.[0] ? (
-              <img src={p.images[0]} alt="" className="w-12 h-12 object-cover rounded" />
-            ) : (
-              <div className="w-12 h-12 rounded flex items-center justify-center" style={{ backgroundColor: '#282a2f' }}>
-                <span className="material-symbols-outlined text-outline-variant">3d_rotation</span>
+        {filteredProducts.map(p => {
+          const name = typeof p.name === 'string' ? p.name : p.name?.ar || p.name?.en || p.name?.fr || '';
+          return (
+            <div key={p.id} className="rounded-lg p-4 flex items-center gap-4" style={{ backgroundColor: '#1e1f25' }}>
+              {p.images?.[0] ? (
+                <img src={p.images[0]} alt="" className="w-12 h-12 object-cover rounded" />
+              ) : (
+                <div className="w-12 h-12 rounded flex items-center justify-center" style={{ backgroundColor: '#282a2f' }}>
+                  <span className="material-symbols-outlined text-outline-variant">3d_rotation</span>
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold truncate">{name}</p>
+                <p className="text-body-sm text-outline">{p.price?.toLocaleString()} DA</p>
               </div>
-            )}
-            <div className="flex-1 min-w-0">
-              <p className="font-semibold truncate">{p.name}</p>
-              <p className="text-body-sm text-outline">{p.price?.toLocaleString()} DA</p>
+              {p.isFeatured && <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded-full">{t('admin.featured')}</span>}
+              <div className="flex gap-2">
+                <button onClick={() => openEdit(p)} className="text-outline hover:text-primary">
+                  <span className="material-symbols-outlined text-lg">edit</span>
+                </button>
+                <button onClick={async () => { await productRepo.toggleFeatured(p.id); load(); }} className="text-outline hover:text-primary">
+                  <span className="material-symbols-outlined text-lg">star</span>
+                </button>
+                <button onClick={async () => { if (confirm(t('admin.deleteConfirm'))) { await productRepo.delete(p.id); load(); } }} className="text-outline hover:text-error">
+                  <span className="material-symbols-outlined text-lg">delete</span>
+                </button>
+              </div>
             </div>
-            {p.isFeatured && <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded-full">{t('admin.featured')}</span>}
-            <div className="flex gap-2">
-              <button onClick={() => openEdit(p)} className="text-outline hover:text-primary">
-                <span className="material-symbols-outlined text-lg">edit</span>
-              </button>
-              <button onClick={async () => { await productRepo.toggleFeatured(p.id); load(); }} className="text-outline hover:text-primary">
-                <span className="material-symbols-outlined text-lg">star</span>
-              </button>
-              <button onClick={async () => { if (confirm(t('admin.deleteConfirm'))) { await productRepo.delete(p.id); load(); } }} className="text-outline hover:text-error">
-                <span className="material-symbols-outlined text-lg">delete</span>
-              </button>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
@@ -258,13 +391,19 @@ function OrdersTab() {
   const [noteText, setNoteText] = useState('');
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('');
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
 
   const load = useCallback(() => {
     setLoading(true);
-    adminRepo.getOrders({ search: search || undefined, status: filter || undefined })
-      .then(r => setOrders(r.items))
+    adminRepo.getOrders({
+      search: search || undefined,
+      status: filter || undefined,
+      fromDate: fromDate || undefined,
+      toDate: toDate || undefined
+    }).then(r => setOrders(r.items))
       .finally(() => setLoading(false));
-  }, [search, filter]);
+  }, [search, filter, fromDate, toDate]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -287,6 +426,10 @@ function OrdersTab() {
           <option value="">{t('common.all')}</option>
           {[0, 1, 2, 3].map(s => <option key={s} value={s}>{t(statusLabels[s])}</option>)}
         </select>
+        <input type="date" value={fromDate} onChange={e => setFromDate(e.target.value)}
+          className="bg-surface-container text-on-surface border border-outline-variant rounded px-3 py-2 text-body-sm" aria-label="From date" />
+        <input type="date" value={toDate} onChange={e => setToDate(e.target.value)}
+          className="bg-surface-container text-on-surface border border-outline-variant rounded px-3 py-2 text-body-sm" aria-label="To date" />
         {pendingCount > 0 && <span className="text-xs bg-error/20 text-error px-2 py-1 rounded-full">{pendingCount} {t('common.pending')}</span>}
       </div>
 
@@ -411,7 +554,11 @@ function OrdersTab() {
 function CustomersTab() {
   const { t } = useTranslation();
   const [customers, setCustomers] = useState<Customer[]>([]);
+  const [customerOrders, setCustomerOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selected, setSelected] = useState<Customer | null>(null);
+  const [ordersLoading, setOrdersLoading] = useState(false);
+  const [customerSearch, setCustomerSearch] = useState('');
 
   const load = useCallback(() => {
     setLoading(true);
@@ -420,30 +567,91 @@ function CustomersTab() {
 
   useEffect(() => { load(); }, [load]);
 
+  const openDetail = async (c: Customer) => {
+    setSelected(c);
+    setOrdersLoading(true);
+    try {
+      const res = await adminRepo.getOrders({ customerId: c.id });
+      setCustomerOrders(res.items || []);
+    } catch { setCustomerOrders([]); }
+    finally { setOrdersLoading(false); }
+  };
+
   if (loading) return <LoadingSpinner />;
 
+  const filteredCustomers = customers.filter(c =>
+    !customerSearch || c.fullName?.toLowerCase().includes(customerSearch.toLowerCase()) ||
+    c.email?.toLowerCase().includes(customerSearch.toLowerCase())
+  );
+
   return (
-    <div className="space-y-2">
-      {customers.length === 0 ? (
-        <p className="text-center py-16 text-on-surface-variant">{t('admin.noData')}</p>
-      ) : customers.map(c => (
-        <div key={c.id} className="rounded-lg p-4 flex items-center gap-4" style={{ backgroundColor: '#1e1f25' }}>
-          <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold" style={{ backgroundColor: '#282a2f' }}>
-            {c.fullName?.charAt(0)?.toUpperCase() || '?'}
+    <div>
+      <input value={customerSearch} onChange={e => setCustomerSearch(e.target.value)} placeholder={t('admin.search')}
+        className="bg-surface-container text-on-surface border border-outline-variant rounded px-3 py-2 text-body-sm w-full mb-4" />
+      <div className="space-y-2">
+        {filteredCustomers.length === 0 ? (
+          <p className="text-center py-16 text-on-surface-variant">{t('admin.noData')}</p>
+        ) : filteredCustomers.map(c => (
+          <div key={c.id} className="rounded-lg p-4 flex items-center gap-4 cursor-pointer hover:opacity-80 transition-opacity"
+            style={{ backgroundColor: '#1e1f25' }} onClick={() => openDetail(c)}>
+            <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold" style={{ backgroundColor: '#282a2f' }}>
+              {c.fullName?.charAt(0)?.toUpperCase() || '?'}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-semibold truncate">{c.fullName}</p>
+              <p className="text-body-sm text-outline">{c.email} {c.phone && `• ${c.phone}`}</p>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="text-body-sm text-outline">{(c as any).orderCount || 0} orders</span>
+              {c.isBanned && <span className="text-xs bg-error/20 text-error px-2 py-0.5 rounded-full">Banned</span>}
+              <button onClick={async (e) => { e.stopPropagation(); await adminRepo.toggleBan(c.id); load(); }}
+                className={`text-body-sm px-3 py-1.5 rounded ${c.isBanned ? 'bg-green-600/20 text-green-300' : 'bg-red-600/20 text-red-300'}`}>
+                {c.isBanned ? t('admin.unban') : t('admin.ban')}
+              </button>
+            </div>
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="font-semibold truncate">{c.fullName}</p>
-            <p className="text-body-sm text-outline">{c.email} {c.phone && `• ${c.phone}`}</p>
-          </div>
-          <div className="flex items-center gap-2">
-            {c.isBanned && <span className="text-xs bg-error/20 text-error px-2 py-0.5 rounded-full">Banned</span>}
-            <button onClick={async () => { await adminRepo.toggleBan(c.id); load(); }}
-              className={`text-body-sm px-3 py-1.5 rounded ${c.isBanned ? 'bg-green-600/20 text-green-300' : 'bg-red-600/20 text-red-300'}`}>
-              {c.isBanned ? t('admin.unban') : t('admin.ban')}
-            </button>
+        ))}
+      </div>
+
+      {selected && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}
+          onClick={e => { if (e.target === e.currentTarget) { setSelected(null); setCustomerOrders([]); } }}>
+          <div className="rounded-lg p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto" style={{ backgroundColor: '#1e1f25' }}>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-headline-md">{selected.fullName}</h2>
+              <button onClick={() => { setSelected(null); setCustomerOrders([]); }} className="text-outline hover:text-on-surface">
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+            <div className="space-y-2 mb-6 text-body-sm">
+              <p><span className="text-outline">{t('checkout.email')}:</span> {selected.email}</p>
+              <p><span className="text-outline">{t('checkout.phone')}:</span> {selected.phone || '-'}</p>
+              <p><span className="text-outline">{t('order.date')}:</span> {new Date(selected.createdAt).toLocaleDateString()}</p>
+            </div>
+            <h3 className="text-body-md font-semibold mb-3">{t('account.orders')} ({customerOrders.length})</h3>
+            {ordersLoading ? (
+              <LoadingSpinner />
+            ) : customerOrders.length === 0 ? (
+              <p className="text-on-surface-variant text-body-sm">{t('account.noOrders')}</p>
+            ) : (
+              <div className="space-y-2">
+                {customerOrders.map(o => (
+                  <div key={o.id} className="rounded-lg p-3" style={{ backgroundColor: '#282a2f' }}>
+                    <div className="flex justify-between text-body-sm">
+                      <span>{o.reference}</span>
+                      <span className={`px-2 py-0.5 rounded text-xs font-semibold ${statusColors[o.status]}`}>{t(statusLabels[o.status])}</span>
+                    </div>
+                    <div className="flex justify-between text-body-sm text-outline mt-1">
+                      <span>{new Date(o.createdAt).toLocaleDateString()}</span>
+                      <span className="text-primary">{o.total?.toLocaleString()} DA</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
-      ))}
+      )}
     </div>
   );
 }

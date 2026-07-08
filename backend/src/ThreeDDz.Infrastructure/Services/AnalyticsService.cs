@@ -9,51 +9,41 @@ public class AnalyticsService : IAnalyticsService
     private readonly IOrderRepository _orderRepo;
     private readonly IProductRepository _productRepo;
     private readonly IUserRepository _userRepo;
-    private readonly IReviewRepository _reviewRepo;
 
-    public AnalyticsService(IOrderRepository orderRepo, IProductRepository productRepo,
-        IUserRepository userRepo, IReviewRepository reviewRepo)
+    public AnalyticsService(IOrderRepository orderRepo, IProductRepository productRepo, IUserRepository userRepo)
     {
         _orderRepo = orderRepo;
         _productRepo = productRepo;
         _userRepo = userRepo;
-        _reviewRepo = reviewRepo;
     }
 
     public async Task<AnalyticsSummary> GetAsync(DateTime? from, DateTime? to)
     {
-        var orders = await _orderRepo.GetForAnalyticsAsync(from, to);
         var products = await _productRepo.GetForAnalyticsAsync();
-        var allProducts = await _productRepo.GetAllAsync();
-        var totalProducts = allProducts.Count(p => !p.IsDeleted);
+        var totalProducts = products.Count(p => !p.IsDeleted);
+
         var newCustomers = await _userRepo.CountAsync(u =>
             u.Role == UserRole.Customer && u.CreatedAt >= DateTime.UtcNow.AddDays(-30));
 
-        var topProducts = orders
-            .SelectMany(o => o.Items)
-            .GroupBy(i => i.ProductId)
-            .Select(g => new TopProductStat(
-                ProductId: g.Key,
-                Name: g.First().ProductName.En,
-                OrderCount: g.Sum(i => i.Quantity)))
-            .OrderByDescending(x => x.OrderCount)
-            .Take(5)
-            .ToList();
+        var pendingTask = _orderRepo.CountByStatusAsync(OrderStatus.Pending, from, to);
+        var confirmedTask = _orderRepo.CountByStatusAsync(OrderStatus.Confirmed, from, to);
+        var completedTask = _orderRepo.CountByStatusAsync(OrderStatus.Completed, from, to);
+        var rejectedTask = _orderRepo.CountByStatusAsync(OrderStatus.Rejected, from, to);
+        var topTask = _orderRepo.GetTopProductsAsync(5, from, to);
+        var wilayaTask = _orderRepo.GetOrdersByWilayaAsync(from, to);
 
-        var ordersByWilaya = orders
-            .GroupBy(o => o.WilayaName)
-            .ToDictionary(g => g.Key, g => g.Count());
+        await Task.WhenAll(pendingTask, confirmedTask, completedTask, rejectedTask, topTask, wilayaTask);
 
         return new AnalyticsSummary(
-            TotalOrders: orders.Count,
-            PendingOrders: orders.Count(o => o.Status == OrderStatus.Pending),
-            ConfirmedOrders: orders.Count(o => o.Status == OrderStatus.Confirmed),
-            CompletedOrders: orders.Count(o => o.Status == OrderStatus.Completed),
-            RejectedOrders: orders.Count(o => o.Status == OrderStatus.Rejected),
+            TotalOrders: (int)(pendingTask.Result + confirmedTask.Result + completedTask.Result + rejectedTask.Result),
+            PendingOrders: (int)pendingTask.Result,
+            ConfirmedOrders: (int)confirmedTask.Result,
+            CompletedOrders: (int)completedTask.Result,
+            RejectedOrders: (int)rejectedTask.Result,
             NewCustomersLast30Days: (int)newCustomers,
             TotalProducts: totalProducts,
-            TopProducts: topProducts,
-            OrdersByWilaya: ordersByWilaya
+            TopProducts: topTask.Result,
+            OrdersByWilaya: wilayaTask.Result
         );
     }
 }

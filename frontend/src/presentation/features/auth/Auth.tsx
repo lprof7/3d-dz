@@ -16,8 +16,9 @@ export default function Auth() {
   const [form, setForm] = useState({ fullName: '', email: '', phone: '', password: '', confirmPassword: '', token: resetToken });
   const [forgotSent, setForgotSent] = useState(false);
   const [forgotMsg, setForgotMsg] = useState('');
+  const [pwMismatch, setPwMismatch] = useState('');
 
-  const toggle = (m: string) => { clearError(); setMode(m); setForgotSent(false); setForgotMsg(''); };
+  const toggle = (m: string) => { clearError(); setMode(m); setForgotSent(false); setForgotMsg(''); setPwMismatch(''); };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,7 +27,7 @@ export default function Auth() {
         await login(form.email, form.password);
         navigate('/');
       } else if (mode === 'register') {
-        if (form.password !== form.confirmPassword) { return alert(t('auth.passwordMismatch')); }
+        if (form.password !== form.confirmPassword) { setPwMismatch(t('auth.passwordMismatch')); return; } else { setPwMismatch(''); }
         await register({ fullName: form.fullName, email: form.email, phone: form.phone, password: form.password });
         navigate('/');
       } else if (mode === 'forgot') {
@@ -40,8 +41,7 @@ export default function Auth() {
       }
     } catch (err: any) {
       const msg = err.response?.data?.error || t('common.error');
-      if (mode === 'login' || mode === 'register') {
-      } else { setForgotMsg(msg); }
+      if (mode === 'forgot' || mode === 'reset') { setForgotMsg(msg); }
     }
   };
 
@@ -54,6 +54,7 @@ export default function Auth() {
 
         {error && <div className="bg-error-container text-on-error-container p-3 rounded mb-4 text-body-sm">{error}</div>}
         {forgotMsg && <div className="bg-green-900/30 text-green-300 p-3 rounded mb-4 text-body-sm">{forgotMsg}</div>}
+        {pwMismatch && <div className="bg-error-container text-on-error-container p-3 rounded mb-4 text-body-sm">{pwMismatch}</div>}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {mode === 'register' && (

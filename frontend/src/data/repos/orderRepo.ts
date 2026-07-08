@@ -20,7 +20,9 @@ export const reviewRepo = {
     api.post('/reviews', data).then(r => r.data as Review),
   approve: (id: string) => api.put(`/admin/reviews/${id}/status`, { status: 1 }),
   reject: (id: string) => api.put(`/admin/reviews/${id}/status`, { status: 2 }),
-  getPending: () => api.get('/admin/reviews/pending').then(r => r.data.items as Review[])
+  getPending: () => api.get('/admin/reviews/pending').then(r => r.data.items as Review[]),
+  canReview: (productId: string) =>
+    api.get(`/reviews/can-review/${productId}`).then(r => r.data.canReview as boolean)
 };
 
 export const bannerRepo = {

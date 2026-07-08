@@ -14,7 +14,8 @@ api.interceptors.response.use(
     if (err.response?.status === 401) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      window.location.href = '/auth?mode=login';
+      const next = encodeURIComponent(window.location.pathname + window.location.search);
+      window.location.href = `/auth?mode=login${next !== '%2F' ? `&next=${next}` : ''}`;
     }
     return Promise.reject(err);
   }

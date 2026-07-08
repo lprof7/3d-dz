@@ -1,5 +1,7 @@
 using System.Text;
 using System.Text.Json;
+using FluentValidation;
+using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using ThreeDDz.Application.Interfaces;
@@ -46,6 +48,10 @@ builder.Services.AddScoped<IWilayaService, WilayaService>();
 builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
 builder.Services.AddHttpClient();
 
+// FluentValidation
+builder.Services.AddFluentValidationAutoValidation();
+builder.Services.AddValidatorsFromAssemblyContaining<ThreeDDz.Api.Validators.RegisterRequestValidator>();
+
 // JWT Auth
 var jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET") ?? "default-secret-change-me-32-chars-min!!";
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -71,11 +77,12 @@ builder.Services.AddCors(o => o.AddDefaultPolicy(p => p.AllowAnyOrigin().AllowAn
 
 var app = builder.Build();
 
-// Seed data
+// Seed data & indexes
 using (var scope = app.Services.CreateScope())
 {
     var sp = scope.ServiceProvider;
     await ThreeDDz.Api.Seed.SeedData.SeedAsync(sp);
+    await ThreeDDz.Api.Seed.SeedData.EnsureIndexesAsync(sp, mongo);
 }
 
 // Development-only middleware (OpenApi disabled for .NET 10 preview)

@@ -8,11 +8,13 @@ public class ReviewService : IReviewService
 {
     private readonly IReviewRepository _reviewRepo;
     private readonly IOrderRepository _orderRepo;
+    private readonly IProductRepository _productRepo;
 
-    public ReviewService(IReviewRepository reviewRepo, IOrderRepository orderRepo)
+    public ReviewService(IReviewRepository reviewRepo, IOrderRepository orderRepo, IProductRepository productRepo)
     {
         _reviewRepo = reviewRepo;
         _orderRepo = orderRepo;
+        _productRepo = productRepo;
     }
 
     public async Task<Review> SubmitOrUpdateAsync(string customerId, string customerName,
@@ -65,6 +67,7 @@ public class ReviewService : IReviewService
             ?? throw new InvalidOperationException("Review not found");
         review.Status = (ReviewStatus)status;
         await _reviewRepo.UpdateAsync(id, review);
+        await _productRepo.UpdateAvgRatingAsync(review.ProductId);
         return review;
     }
 
@@ -76,4 +79,12 @@ public class ReviewService : IReviewService
     }
 
     public Task<List<Review>> GetAllAsync() => _reviewRepo.GetAllAsync();
+
+    public async Task<bool> CanReviewAsync(string customerId, string productId)
+    {
+        var existing = await _reviewRepo.GetByCustomerAndProductAsync(customerId, productId);
+        if (existing.Any()) return true; // allow edit
+        var orders = await _orderRepo.GetByCustomerAsync(customerId);
+        return orders.Any(o => o.Status == OrderStatus.Completed && o.Items.Any(i => i.ProductId == productId));
+    }
 }

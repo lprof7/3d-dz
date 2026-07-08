@@ -51,6 +51,12 @@ public class Product
     [BsonElement("license")]
     public string License { get; set; } = "Personal Use";
 
+    [BsonElement("avgRating")]
+    public double AvgRating { get; set; }
+
+    [BsonElement("reviewCount")]
+    public int ReviewCount { get; set; }
+
     [BsonElement("isFeatured")]
     public bool IsFeatured { get; set; }
 

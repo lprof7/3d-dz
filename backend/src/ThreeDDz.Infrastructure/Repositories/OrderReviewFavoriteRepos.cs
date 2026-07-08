@@ -1,3 +1,4 @@
+using MongoDB.Bson;
 using MongoDB.Driver;
 using ThreeDDz.Application.Interfaces;
 using ThreeDDz.Domain.Enums;
@@ -30,6 +31,159 @@ public class OrderRepository : MongoRepository<Order>, IOrderRepository
             filter = Builders<Order>.Filter.And(filters);
         }
         return await Collection.Find(filter).ToListAsync();
+    }
+
+    public async Task<List<Order>> GetByFilterAsync(OrderFilter filter)
+    {
+        var filters = new List<FilterDefinition<Order>>();
+        if (filter.Status.HasValue)
+            filters.Add(Builders<Order>.Filter.Eq(o => o.Status, filter.Status.Value));
+        if (filter.WilayaCode.HasValue)
+            filters.Add(Builders<Order>.Filter.Eq(o => o.WilayaCode, filter.WilayaCode.Value));
+        if (filter.FromDate.HasValue)
+            filters.Add(Builders<Order>.Filter.Gte(o => o.CreatedAt, filter.FromDate.Value));
+        if (filter.ToDate.HasValue)
+            filters.Add(Builders<Order>.Filter.Lte(o => o.CreatedAt, filter.ToDate.Value));
+        if (!string.IsNullOrWhiteSpace(filter.CustomerId))
+            filters.Add(Builders<Order>.Filter.Eq(o => o.CustomerId, filter.CustomerId));
+        if (!string.IsNullOrWhiteSpace(filter.Search))
+        {
+            var s = filter.Search.ToLowerInvariant();
+            filters.Add(Builders<Order>.Filter.Or(
+                Builders<Order>.Filter.Regex(o => o.CustomerFullName, new MongoDB.Bson.BsonRegularExpression(s, "i")),
+                Builders<Order>.Filter.Regex(o => o.Reference, new MongoDB.Bson.BsonRegularExpression(s, "i"))
+            ));
+        }
+
+        var combined = filters.Count == 0
+            ? Builders<Order>.Filter.Empty
+            : filters.Count == 1 ? filters[0]
+            : Builders<Order>.Filter.And(filters);
+
+        return await Collection.Find(combined)
+            .SortByDescending(o => o.CreatedAt)
+            .Skip(filter.Skip).Limit(filter.Take)
+            .ToListAsync();
+    }
+
+    public async Task<long> GetTodayCountAsync()
+    {
+        var today = DateTime.UtcNow.Date;
+        var tomorrow = today.AddDays(1);
+        return await Collection.CountDocumentsAsync(
+            Builders<Order>.Filter.And(
+                Builders<Order>.Filter.Gte(o => o.CreatedAt, today),
+                Builders<Order>.Filter.Lt(o => o.CreatedAt, tomorrow)
+            ));
+    }
+
+    public async Task<long> CountByStatusAsync(OrderStatus status, DateTime? from, DateTime? to)
+    {
+        var filters = new List<FilterDefinition<Order>> { Builders<Order>.Filter.Eq(o => o.Status, status) };
+        if (from.HasValue) filters.Add(Builders<Order>.Filter.Gte(o => o.CreatedAt, from.Value));
+        if (to.HasValue) filters.Add(Builders<Order>.Filter.Lte(o => o.CreatedAt, to.Value));
+        return await Collection.CountDocumentsAsync(Builders<Order>.Filter.And(filters));
+    }
+
+    public async Task<List<TopProductStat>> GetTopProductsAsync(int take, DateTime? from, DateTime? to)
+    {
+        var match = Builders<Order>.Filter.Empty;
+        if (from.HasValue || to.HasValue)
+        {
+            var filters = new List<FilterDefinition<Order>>();
+            if (from.HasValue) filters.Add(Builders<Order>.Filter.Gte(o => o.CreatedAt, from.Value));
+            if (to.HasValue) filters.Add(Builders<Order>.Filter.Lte(o => o.CreatedAt, to.Value));
+            match = Builders<Order>.Filter.And(filters);
+        }
+
+        var pipeline = new BsonDocument[]
+        {
+            new("$match", match.ToBsonDocument()),
+            new("$unwind", "$items"),
+            new("$group", new BsonDocument
+            {
+                { "_id", "$items.productId" },
+                { "name", new BsonDocument("$first", "$items.productName") },
+                { "orderCount", new BsonDocument("$sum", "$items.quantity") }
+            }),
+            new("$sort", new BsonDocument("orderCount", -1)),
+            new("$limit", take)
+        };
+
+        var results = new List<TopProductStat>();
+        using var cursor = await Collection.AggregateAsync<BsonDocument>(pipeline);
+        while (await cursor.MoveNextAsync())
+        {
+            foreach (var doc in cursor.Current)
+            {
+                var nameDoc = doc["name"].AsBsonDocument;
+                var name = nameDoc.Contains("en") ? nameDoc["en"].AsString
+                    : nameDoc.Contains("fr") ? nameDoc["fr"].AsString
+                    : nameDoc.Contains("ar") ? nameDoc["ar"].AsString
+                    : "";
+                results.Add(new TopProductStat(
+                    doc["_id"].AsString,
+                    name,
+                    doc["orderCount"].AsInt32
+                ));
+            }
+        }
+        return results;
+    }
+
+    public async Task<Dictionary<string, int>> GetOrdersByWilayaAsync(DateTime? from, DateTime? to)
+    {
+        var match = Builders<Order>.Filter.Empty;
+        if (from.HasValue || to.HasValue)
+        {
+            var filters = new List<FilterDefinition<Order>>();
+            if (from.HasValue) filters.Add(Builders<Order>.Filter.Gte(o => o.CreatedAt, from.Value));
+            if (to.HasValue) filters.Add(Builders<Order>.Filter.Lte(o => o.CreatedAt, to.Value));
+            match = Builders<Order>.Filter.And(filters);
+        }
+
+        var pipeline = new BsonDocument[]
+        {
+            new("$match", match.ToBsonDocument()),
+            new("$group", new BsonDocument
+            {
+                { "_id", "$wilayaName" },
+                { "count", new BsonDocument("$sum", 1) }
+            })
+        };
+
+        var result = new Dictionary<string, int>();
+        using var cursor = await Collection.AggregateAsync<BsonDocument>(pipeline);
+        while (await cursor.MoveNextAsync())
+        {
+            foreach (var doc in cursor.Current)
+            {
+                result[doc["_id"].AsString] = doc["count"].AsInt32;
+            }
+        }
+        return result;
+    }
+
+    public async Task<Dictionary<string, int>> GetCountPerCustomerAsync()
+    {
+        var pipeline = new BsonDocument[]
+        {
+            new("$group", new BsonDocument
+            {
+                { "_id", "$customerId" },
+                { "count", new BsonDocument("$sum", 1) }
+            })
+        };
+        var result = new Dictionary<string, int>();
+        using var cursor = await Collection.AggregateAsync<BsonDocument>(pipeline);
+        while (await cursor.MoveNextAsync())
+        {
+            foreach (var doc in cursor.Current)
+            {
+                result[doc["_id"].AsString] = doc["count"].AsInt32;
+            }
+        }
+        return result;
     }
 }
 

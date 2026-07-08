@@ -14,6 +14,8 @@ export default function Home() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [banners, setBanners] = useState<Banner[]>([]);
   const [loading, setLoading] = useState(true);
+  const [heroIndex, setHeroIndex] = useState(0);
+  const [paused, setPaused] = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -29,25 +31,44 @@ export default function Home() {
     }).finally(() => setLoading(false));
   }, []);
 
+  useEffect(() => {
+    if (banners.length < 2 || paused) return;
+    const id = setInterval(() => setHeroIndex(i => (i + 1) % banners.length), 5000);
+    return () => clearInterval(id);
+  }, [banners.length, paused]);
+
   if (loading) return <div className="flex items-center justify-center min-h-screen"><span className="material-symbols-outlined animate-spin text-primary text-3xl">progress_activity</span></div>;
 
-  const heroBg = banners[0]?.imageUrl;
+  const currentBanner = banners[heroIndex];
+  const heroBg = currentBanner?.imageUrl || banners[0]?.imageUrl;
 
   return (
     <div>
       {/* Hero */}
       <section className="relative min-h-[70vh] flex items-center justify-center overflow-hidden"
         style={heroBg ? { backgroundImage: `url(${heroBg})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}}
+        onMouseEnter={() => setPaused(true)}
+        onMouseLeave={() => setPaused(false)}
       >
         <div className="absolute inset-0" style={{
           background: heroBg ? 'linear-gradient(180deg, rgba(17,19,24,0.3) 0%, rgba(17,19,24,0.9) 100%)' : 'radial-gradient(ellipse at 30% 50%, #862200 0%, transparent 60%), radial-gradient(ellipse at 70% 50%, #00363e 0%, transparent 60%)'
         }} />
+        {banners.length > 1 && (
+          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+            {banners.map((_, i) => (
+              <button key={i} onClick={() => setHeroIndex(i)}
+                className={`w-2.5 h-2.5 rounded-full transition-all ${i === heroIndex ? 'bg-primary w-6' : 'bg-white/40 hover:bg-white/70'}`}
+                aria-label={`Slide ${i + 1}`}
+              />
+            ))}
+          </div>
+        )}
         <div className="relative text-center px-4 max-w-3xl mx-auto">
-          <h1 className="text-display-lg-mobile md:text-display-lg mb-4">{t('home.heroTitle')}</h1>
-          <p className="text-body-lg text-on-surface-variant mb-8">{t('home.heroSubtitle')}</p>
+          <h1 className="text-display-lg-mobile md:text-display-lg mb-4">{currentBanner?.title || t('home.heroTitle')}</h1>
+          <p className="text-body-lg text-on-surface-variant mb-8">{currentBanner?.subtitle || t('home.heroSubtitle')}</p>
           <div className="flex items-center justify-center gap-4">
-            <Link to="/catalog" className="bg-primary text-on-primary px-6 py-3 rounded-lg text-body-md font-semibold hover:opacity-90 transition-opacity">
-              {t('home.exploreCatalog')}
+            <Link to={currentBanner?.linkUrl || '/catalog'} className="bg-primary text-on-primary px-6 py-3 rounded-lg text-body-md font-semibold hover:opacity-90 transition-opacity">
+              {currentBanner?.ctaText || t('home.exploreCatalog')}
             </Link>
             <button className="border border-primary text-primary px-6 py-3 rounded-lg text-body-md font-semibold hover:bg-primary/10 transition-colors">
               {t('home.uploadModel')}

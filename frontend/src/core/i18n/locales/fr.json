@@ -90,6 +90,8 @@
     "invalidCredentials": "Email ou mot de passe incorrect",
     "accountBanned": "Ce compte est suspendu, contactez le support",
     "emailRegistered": "Cet email est déjà enregistré",
+    "loginToFavorites": "Connectez-vous pour ajouter ce produit à vos favoris",
+    "emailAlreadyRegistered": "Cet email est déjà enregistré, veuillez vous connecter",
     "resetSent": "Si l'email est enregistré, vous recevrez un lien",
     "sendReset": "Envoyer le lien",
     "resetSuccess": "Mot de passe réinitialisé ! Redirection..."
