@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>3D DZ - Categories</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;800&amp;family=JetBrains+Mono:wght@500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary-fixed-variant": "#862200",
+                        "on-primary": "#5f1500",
+                        "surface-bright": "#37393f",
+                        "primary-container": "#ff6a3d",
+                        "surface-variant": "#33353a",
+                        "on-tertiary-fixed": "#151b2a",
+                        "on-secondary-fixed-variant": "#004e5a",
+                        "surface-container-low": "#1a1b21",
+                        "error-container": "#93000a",
+                        "on-primary-fixed": "#3b0a00",
+                        "secondary-fixed-dim": "#2fd9f4",
+                        "secondary-fixed": "#a2eeff",
+                        "on-background": "#e2e2e9",
+                        "surface": "#111318",
+                        "tertiary-fixed-dim": "#c0c6da",
+                        "on-error-container": "#ffdad6",
+                        "primary": "#ffb59f",
+                        "secondary": "#5de6ff",
+                        "on-secondary": "#00363e",
+                        "on-error": "#690005",
+                        "primary-fixed": "#ffdbd1",
+                        "on-tertiary": "#2a3040",
+                        "tertiary-fixed": "#dce2f7",
+                        "surface-container-lowest": "#0c0e13",
+                        "on-surface": "#e2e2e9",
+                        "surface-container": "#1e1f25",
+                        "secondary-container": "#00cbe6",
+                        "surface-container-high": "#282a2f",
+                        "primary-fixed-dim": "#ffb59f",
+                        "inverse-surface": "#e2e2e9",
+                        "tertiary-container": "#9399ac",
+                        "on-tertiary-fixed-variant": "#404757",
+                        "on-secondary-container": "#00515d",
+                        "outline": "#a98a81",
+                        "surface-dim": "#111318",
+                        "surface-tint": "#ffb59f",
+                        "tertiary": "#c0c6da",
+                        "inverse-on-surface": "#2e3036",
+                        "error": "#ffb4ab",
+                        "on-tertiary-container": "#2b3141",
+                        "on-secondary-fixed": "#001f25",
+                        "inverse-primary": "#ae3104",
+                        "surface-container-highest": "#33353a",
+                        "on-surface-variant": "#e1bfb6",
+                        "outline-variant": "#59413a",
+                        "on-primary-container": "#611600",
+                        "background": "#111318"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-desktop": "40px",
+                        "stack-sm": "12px",
+                        "container-max": "1440px",
+                        "gutter": "24px",
+                        "stack-md": "24px",
+                        "margin-mobile": "16px",
+                        "base": "8px",
+                        "stack-lg": "48px"
+                    },
+                    "fontFamily": {
+                        "display-lg": ["Sora"],
+                        "tech-label": ["JetBrains Mono"],
+                        "body-md": ["Sora"],
+                        "headline-md": ["Sora"],
+                        "display-lg-mobile": ["Sora"],
+                        "body-lg": ["Sora"],
+                        "price-display": ["JetBrains Mono"]
+                    },
+                    "fontSize": {
+                        "display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "800" }],
+                        "tech-label": ["14px", { "lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "500" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "display-lg-mobile": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "800" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "price-display": ["20px", { "lineHeight": "24px", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: #0D0F14;
+            color: #e2e2e9;
+        }
+        .glass-panel {
+            background: rgba(26, 29, 39, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .glow-hover:hover {
+            border-color: #ff6a3d;
+            box-shadow: 0 0 40px -15px rgba(255, 106, 61, 0.4);
+            transform: translateY(-2px);
+            transition: all 0.3s ease;
+        }
+        .pedestal-shadow {
+            background: radial-gradient(ellipse at center, rgba(255, 106, 61, 0.2) 0%, rgba(26, 29, 39, 0) 70%);
+            bottom: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            height: 40px;
+            position: absolute;
+            z-index: 0;
+            border-radius: 50%;
+        }
+        .tech-chip {
+            background-color: rgba(93, 230, 255, 0.1);
+            color: #5de6ff;
+            border: 1px solid rgba(93, 230, 255, 0.3);
+        }
+        .custom-range::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #ff6a3d;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(255, 106, 61, 0.8);
+        }
+        .custom-range::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: #33353a;
+            border-radius: 2px;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col font-body-md text-body-md overflow-x-hidden">
+<!-- TopNavBar (Shared Component JSON) -->
+<nav class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-margin-desktop py-4 bg-surface/70 backdrop-blur-xl border-b border-white/10 shadow-[0_0_40px_-15px_rgba(255,106,61,0.3)]">
+<div class="flex items-center gap-gutter">
+<a class="font-display-lg text-display-lg font-black text-primary tracking-tighter" href="#">3D DZ</a>
+<div class="hidden md:flex gap-8 ml-8">
+<a class="text-primary border-b-2 border-primary pb-1 active:scale-95 transition-transform hover:text-primary transition-colors duration-300" href="#">Categories</a>
+<a class="text-on-surface-variant active:scale-95 transition-transform hover:text-primary transition-colors duration-300" href="#">Explore</a>
+<a class="text-on-surface-variant active:scale-95 transition-transform hover:text-primary transition-colors duration-300" href="#">Newest</a>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="relative hidden lg:block">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" style="font-variation-settings: 'FILL' 0;">search</span>
+<input class="bg-surface-container-high border border-outline-variant rounded-full py-2 pl-10 pr-4 text-on-surface focus:border-secondary focus:ring-1 focus:ring-secondary focus:outline-none w-64 transition-all" placeholder="Search models..." type="text"/>
+</div>
+<button class="text-on-surface-variant hover:text-primary transition-colors active:scale-95">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">favorite</span>
+</button>
+<button class="text-on-surface-variant hover:text-primary transition-colors active:scale-95 relative">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">shopping_cart</span>
+<span class="absolute -top-1 -right-1 bg-primary text-on-primary text-[10px] font-bold px-1.5 py-0.5 rounded-full">3</span>
+</button>
+<div class="hidden md:flex gap-4 ml-4 border-l border-outline-variant pl-6">
+<button class="text-on-surface hover:text-primary transition-colors font-body-md text-body-md">Login</button>
+<button class="bg-primary-container text-on-primary-container px-6 py-2 rounded-lg font-body-md text-body-md font-semibold hover:brightness-110 active:scale-95 transition-all shadow-[0_4px_14px_0_rgba(255,106,61,0.39)]">Register</button>
+</div>
+</div>
+</nav>
+<!-- Main Content -->
+<main class="flex-grow pt-[100px] pb-stack-lg px-margin-desktop max-w-container-max mx-auto w-full">
+<!-- Breadcrumbs -->
+<div class="flex items-center gap-2 text-sm text-on-surface-variant mb-8 font-tech-label text-tech-label">
+<a class="hover:text-primary transition-colors" href="#">Home</a>
+<span class="material-symbols-outlined text-[16px]">chevron_right</span>
+<a class="hover:text-primary transition-colors" href="#">Categories</a>
+<span class="material-symbols-outlined text-[16px]">chevron_right</span>
+<span class="text-primary">All Models</span>
+</div>
+<div class="flex flex-col lg:flex-row gap-gutter">
+<!-- Sidebar Filters -->
+<aside class="w-full lg:w-64 flex-shrink-0">
+<div class="glass-panel p-6 rounded-xl sticky top-[120px]">
+<div class="flex items-center gap-2 mb-6 border-b border-outline-variant pb-4">
+<span class="material-symbols-outlined text-primary">filter_list</span>
+<h2 class="font-headline-md text-headline-md text-on-surface">Filters</h2>
+</div>
+<!-- Category Filter -->
+<div class="mb-8">
+<h3 class="font-tech-label text-tech-label text-secondary mb-4 uppercase tracking-widest">Category</h3>
+<div class="space-y-3">
+<label class="flex items-center gap-3 cursor-pointer group">
+<input checked="" class="form-checkbox h-5 w-5 rounded border-outline-variant bg-surface-container text-primary focus:ring-primary focus:ring-offset-surface" type="checkbox"/>
+<span class="text-on-surface group-hover:text-primary transition-colors">Architecture</span>
+<span class="ml-auto text-on-surface-variant text-sm">124</span>
+</label>
+<label class="flex items-center gap-3 cursor-pointer group">
+<input class="form-checkbox h-5 w-5 rounded border-outline-variant bg-surface-container text-primary focus:ring-primary focus:ring-offset-surface" type="checkbox"/>
+<span class="text-on-surface group-hover:text-primary transition-colors">Characters</span>
+<span class="ml-auto text-on-surface-variant text-sm">89</span>
+</label>
+<label class="flex items-center gap-3 cursor-pointer group">
+<input class="form-checkbox h-5 w-5 rounded border-outline-variant bg-surface-container text-primary focus:ring-primary focus:ring-offset-surface" type="checkbox"/>
+<span class="text-on-surface group-hover:text-primary transition-colors">Vehicles</span>
+<span class="ml-auto text-on-surface-variant text-sm">56</span>
+</label>
+<label class="flex items-center gap-3 cursor-pointer group">
+<input class="form-checkbox h-5 w-5 rounded border-outline-variant bg-surface-container text-primary focus:ring-primary focus:ring-offset-surface" type="checkbox"/>
+<span class="text-on-surface group-hover:text-primary transition-colors">Props</span>
+<span class="ml-auto text-on-surface-variant text-sm">210</span>
+</label>
+</div>
+</div>
+<!-- Price Filter -->
+<div class="mb-8 border-t border-outline-variant pt-6">
+<h3 class="font-tech-label text-tech-label text-secondary mb-4 uppercase tracking-widest">Price (DZD)</h3>
+<input class="w-full custom-range mb-4" max="10000" min="0" type="range" value="5000"/>
+<div class="flex justify-between font-tech-label text-tech-label text-on-surface-variant">
+<div class="bg-surface-container-high px-3 py-1 rounded border border-outline-variant">0</div>
+<div class="bg-surface-container-high px-3 py-1 rounded border border-secondary text-secondary">5,000+</div>
+</div>
+</div>
+<!-- Rating Filter -->
+<div class="border-t border-outline-variant pt-6">
+<h3 class="font-tech-label text-tech-label text-secondary mb-4 uppercase tracking-widest">Rating</h3>
+<div class="space-y-3">
+<label class="flex items-center gap-3 cursor-pointer group">
+<input checked="" class="form-radio h-5 w-5 border-outline-variant bg-surface-container text-primary focus:ring-primary focus:ring-offset-surface" name="rating" type="radio"/>
+<div class="flex text-primary">
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+<span class="text-on-surface-variant text-sm">&amp; Up</span>
+</label>
+<label class="flex items-center gap-3 cursor-pointer group">
+<input class="form-radio h-5 w-5 border-outline-variant bg-surface-container text-primary focus:ring-primary focus:ring-offset-surface" name="rating" type="radio"/>
+<div class="flex text-primary">
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[18px] text-surface-variant" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+<span class="text-on-surface-variant text-sm">&amp; Up</span>
+</label>
+</div>
+</div>
+<button class="w-full mt-8 bg-transparent border border-secondary text-secondary py-2 rounded-lg font-tech-label text-tech-label hover:bg-secondary/10 transition-colors">Reset Filters</button>
+</div>
+</aside>
+<!-- Product Grid Area -->
+<div class="flex-grow">
+<!-- Grid Header -->
+<div class="flex justify-between items-center mb-8 bg-surface-container-low p-4 rounded-xl border border-white/5">
+<p class="text-on-surface-variant">Showing <span class="text-on-surface font-bold">1-16</span> of <span class="text-on-surface font-bold">479</span> models</p>
+<div class="flex items-center gap-4">
+<span class="text-on-surface-variant font-tech-label text-tech-label">Sort by:</span>
+<select class="bg-surface-container-high border border-outline-variant text-on-surface rounded-lg py-1.5 pl-3 pr-8 focus:ring-secondary focus:border-secondary font-tech-label text-tech-label">
+<option>Trending</option>
+<option>Price: Low to High</option>
+<option>Price: High to Low</option>
+<option>Newest Arrivals</option>
+</select>
+</div>
+</div>
+<!-- 4-Column Grid -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-gutter mb-12">
+<!-- Product Card 1 -->
+<div class="glass-panel rounded-xl overflow-hidden glow-hover group relative pb-12">
+<!-- Corner HUD Brackets -->
+<div class="absolute top-2 left-2 w-4 h-4 border-t border-l border-white/20 group-hover:border-primary/50 transition-colors z-10"></div>
+<div class="absolute top-2 right-2 w-4 h-4 border-t border-r border-white/20 group-hover:border-primary/50 transition-colors z-10"></div>
+<div class="relative h-48 bg-surface-container flex items-center justify-center p-4">
+<div class="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-surface-variant/50 to-surface-container-lowest"></div>
+<img class="relative z-10 max-h-full object-contain filter drop-shadow-2xl group-hover:scale-105 transition-transform duration-500" data-alt="A highly detailed 3D rendering of a futuristic cyberpunk motorcycle. The motorcycle features sleek, angular geometry, glowing neon blue accents, and exposed mechanical parts. It is presented in an isometric view against a dark, moody background with subtle atmospheric fog. The lighting is dramatic, highlighting the metallic textures and reflective surfaces. High-contrast tech aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBca8F7zXNOYAp4LWOXiDV1isksOkLNOxKpp5VLjp-PEhkUrqQGLg_e_ZDSXyXgF5qdHhA22W8nj_pSGWXV82utGIpgDWGytXkBFG7I5I1_0QIfieydlM2pmvqWEYX9hRAHmUKMP1-xysTeDIPidOnDFmDkI1GDGFQ8w8P8KliKc6ixw5utN63HkmuHLCTAKxx4t6blxQ2RJlKf0nv91agHDAwIYh1zsZs4z8ahvy0WLytF-EkJCnzf"/>
+<!-- Pedestal -->
+<div class="pedestal-shadow group-hover:opacity-100 opacity-50 transition-opacity"></div>
+<button class="absolute top-3 right-3 z-20 text-on-surface-variant hover:text-primary transition-colors bg-surface/50 rounded-full p-1.5 backdrop-blur-sm border border-white/10">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 0;">favorite</span>
+</button>
+</div>
+<div class="p-4 relative z-10 bg-gradient-to-t from-surface-container-low to-transparent">
+<div class="flex gap-2 mb-2">
+<span class="tech-chip text-[10px] px-2 py-0.5 rounded font-tech-label">STL</span>
+<span class="tech-chip text-[10px] px-2 py-0.5 rounded font-tech-label">OBJ</span>
+</div>
+<h3 class="font-body-lg text-body-lg text-on-surface font-semibold mb-1 truncate">Cyberpunk Hover Bike</h3>
+<p class="text-on-surface-variant text-sm mb-3">By NeonForge</p>
+<div class="flex justify-between items-end mt-4">
+<div class="font-price-display text-price-display text-primary">2,500 <span class="text-sm text-primary/70">DZD</span></div>
+<div class="flex items-center gap-1 bg-surface-container-high px-2 py-1 rounded border border-white/5">
+<span class="material-symbols-outlined text-[14px] text-[#fbbf24]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="text-sm text-on-surface font-bold">4.9</span>
+</div>
+</div>
+</div>
+<div class="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-secondary to-primary transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-300"></div>
+</div>
+<!-- Product Card 2 -->
+<div class="glass-panel rounded-xl overflow-hidden glow-hover group relative pb-12">
+<div class="absolute top-2 left-2 w-4 h-4 border-t border-l border-white/20 group-hover:border-primary/50 transition-colors z-10"></div>
+<div class="absolute top-2 right-2 w-4 h-4 border-t border-r border-white/20 group-hover:border-primary/50 transition-colors z-10"></div>
+<div class="relative h-48 bg-surface-container flex items-center justify-center p-4">
+<div class="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-surface-variant/50 to-surface-container-lowest"></div>
+<img class="relative z-10 max-h-full object-contain filter drop-shadow-2xl group-hover:scale-105 transition-transform duration-500" data-alt="A meticulously crafted 3D model of a high-tech modular architectural building. The structure features geometric glass facades, dark steel framing, and glowing orange interior lights indicating habitation. It sits on an invisible plane, casting a soft, ambient glow underneath. The aesthetic is clean, professional, and indicative of advanced futuristic engineering. Dark mode presentation." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCL0JS1cgXroYGgjUwA-v9tyWtbHj65EebV1F9cBk7wRPhxbYxxhXNLb0_6F8Yd0corj9S4XgC9iYrbI7qif2hc_X8drQeqGNzxwxG_Onc_xfdO0CPL7zqnWkmxoDiZ5jdGaJ0v-2iCBuZINiRePNc5kuYCmFbAeNEj9GhyKinPMNDNKjXGqvFovCFkd2B6yMCjEQJQEriEP0nW2itAcysc9f_0mQQQVn0Il1yOiPQBReyBIgaEZZ80"/>
+<div class="pedestal-shadow group-hover:opacity-100 opacity-50 transition-opacity"></div>
+<button class="absolute top-3 right-3 z-20 text-on-surface-variant hover:text-primary transition-colors bg-surface/50 rounded-full p-1.5 backdrop-blur-sm border border-white/10">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 0;">favorite</span>
+</button>
+</div>
+<div class="p-4 relative z-10 bg-gradient-to-t from-surface-container-low to-transparent">
+<div class="flex gap-2 mb-2">
+<span class="tech-chip text-[10px] px-2 py-0.5 rounded font-tech-label">FBX</span>
+<span class="tech-chip text-[10px] px-2 py-0.5 rounded font-tech-label">4K PBR</span>
+</div>
+<h3 class="font-body-lg text-body-lg text-on-surface font-semibold mb-1 truncate">Modular Sci-Fi Base</h3>
+<p class="text-on-surface-variant text-sm mb-3">By ArchTech3D</p>
+<div class="flex justify-between items-end mt-4">
+<div class="font-price-display text-price-display text-primary">8,200 <span class="text-sm text-primary/70">DZD</span></div>
+<div class="flex items-center gap-1 bg-surface-container-high px-2 py-1 rounded border border-white/5">
+<span class="material-symbols-outlined text-[14px] text-[#fbbf24]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="text-sm text-on-surface font-bold">5.0</span>
+</div>
+</div>
+</div>
+<div class="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-secondary to-primary transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-300"></div>
+</div>
+<!-- Product Card 3 -->
+<div class="glass-panel rounded-xl overflow-hidden glow-hover group relative pb-12">
+<div class="absolute top-2 left-2 w-4 h-4 border-t border-l border-white/20 group-hover:border-primary/50 transition-colors z-10"></div>
+<div class="absolute top-2 right-2 w-4 h-4 border-t border-r border-white/20 group-hover:border-primary/50 transition-colors z-10"></div>
+<div class="relative h-48 bg-surface-container flex items-center justify-center p-4">
+<div class="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-surface-variant/50 to-surface-container-lowest"></div>
+<img class="relative z-10 max-h-full object-contain filter drop-shadow-2xl group-hover:scale-105 transition-transform duration-500" data-alt="A highly detailed 3D sculpt of a fantasy warrior helmet. The helmet is constructed of dark, tarnished iron with intricate gold filigree and glowing red eye slits. The asset is presented on a minimalist dark background, resting on a subtle luminous pedestal that casts a red ambient shadow. The lighting highlights the rugged texture and metallic shine of the armor." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB17EB3CzOFLVcCjyRZ7qal5cciDYNxO7YXBVn0QwH7KXfk6TsdtEalPjPL4GFuNg1OHMBpkBnaBdBJObiBUaO15fbS8dgrcz1ndAd7vknP895lXyRPOHyHD5A-_xm8OFLVPHUUtbFLE2tdYbz29QSjERoM8kvji4gOk_UjgD2Y_1MvNExtsXyb_hkCrDvMmhVgPZ9QVbQGExehu6oB3xVVZHxrttsf3TfySAm0FTzBNpjvoQEOIwJt"/>
+<div class="pedestal-shadow group-hover:opacity-100 opacity-50 transition-opacity"></div>
+<button class="absolute top-3 right-3 z-20 text-primary bg-primary/10 rounded-full p-1.5 backdrop-blur-sm border border-primary/30">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">favorite</span>
+</button>
+</div>
+<div class="p-4 relative z-10 bg-gradient-to-t from-surface-container-low to-transparent">
+<div class="flex gap-2 mb-2">
+<span class="tech-chip text-[10px] px-2 py-0.5 rounded font-tech-label">ZTL</span>
+<span class="tech-chip text-[10px] px-2 py-0.5 rounded font-tech-label">STL</span>
+</div>
+<h3 class="font-body-lg text-body-lg text-on-surface font-semibold mb-1 truncate">Dark Lord Helm</h3>
+<p class="text-on-surface-variant text-sm mb-3">By PolyCrafter</p>
+<div class="flex justify-between items-end mt-4">
+<div class="font-price-display text-price-display text-primary">1,150 <span class="text-sm text-primary/70">DZD</span></div>
+<div class="flex items-center gap-1 bg-surface-container-high px-2 py-1 rounded border border-white/5">
+<span class="material-symbols-outlined text-[14px] text-[#fbbf24]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="text-sm text-on-surface font-bold">4.7</span>
+</div>
+</div>
+</div>
+<div class="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-secondary to-primary transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-300"></div>
+</div>
+<!-- Product Card 4 -->
+<div class="glass-panel rounded-xl overflow-hidden glow-hover group relative pb-12">
+<div class="absolute top-2 left-2 w-4 h-4 border-t border-l border-white/20 group-hover:border-primary/50 transition-colors z-10"></div>
+<div class="absolute top-2 right-2 w-4 h-4 border-t border-r border-white/20 group-hover:border-primary/50 transition-colors z-10"></div>
+<div class="relative h-48 bg-surface-container flex items-center justify-center p-4">
+<div class="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-surface-variant/50 to-surface-container-lowest"></div>
+<img class="relative z-10 max-h-full object-contain filter drop-shadow-2xl group-hover:scale-105 transition-transform duration-500" data-alt="A photorealistic 3D render of a futuristic mechanical heart. The organ is made of brushed titanium, carbon fiber, and features glowing cyan fluid tubes pulsing with energy. It is suspended in a dark void, with a subtle blueish underglow acting as a pedestal. The image exudes a high-tech, medical-sci-fi aesthetic with sharp focus on the intricate mechanical joints." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDxVHHUO9GOHU6DPn9wZd6ZYhEcw3xb9Rqy89iVy4JPVuqOTM2ZswGubHH5eDanGRMZpWnp3Wj5P0JTnWt1rDtIxG5Ox5gQKYtUJbMmwlHNrRqcZrHfIT-qaLdUV5DHy_81HaoD3m8xlhnt8Y-Xx0vKUCFo4SDZUGI5aQ6uZTnsGSvk0lnTL0br0a05jL70CenJVkt6XNB06ULbDls7KVE9JHNgeMGGn6re1rF1MXar1yxurGmNNNRb"/>
+<div class="pedestal-shadow group-hover:opacity-100 opacity-50 transition-opacity"></div>
+<button class="absolute top-3 right-3 z-20 text-on-surface-variant hover:text-primary transition-colors bg-surface/50 rounded-full p-1.5 backdrop-blur-sm border border-white/10">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 0;">favorite</span>
+</button>
+</div>
+<div class="p-4 relative z-10 bg-gradient-to-t from-surface-container-low to-transparent">
+<div class="flex gap-2 mb-2">
+<span class="tech-chip text-[10px] px-2 py-0.5 rounded font-tech-label">BLEND</span>
+<span class="tech-chip text-[10px] px-2 py-0.5 rounded font-tech-label">Rigged</span>
+</div>
+<h3 class="font-body-lg text-body-lg text-on-surface font-semibold mb-1 truncate">Mech-Heart Prototype</h3>
+<p class="text-on-surface-variant text-sm mb-3">By BioMech Designs</p>
+<div class="flex justify-between items-end mt-4">
+<div class="font-price-display text-price-display text-primary">4,000 <span class="text-sm text-primary/70">DZD</span></div>
+<div class="flex items-center gap-1 bg-surface-container-high px-2 py-1 rounded border border-white/5">
+<span class="material-symbols-outlined text-[14px] text-[#fbbf24]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="text-sm text-on-surface font-bold">4.8</span>
+</div>
+</div>
+</div>
+<div class="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-secondary to-primary transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-300"></div>
+</div>
+<!-- Product Card 5 -->
+<div class="glass-panel rounded-xl overflow-hidden glow-hover group relative pb-12">
+<div class="absolute top-2 left-2 w-4 h-4 border-t border-l border-white/20 group-hover:border-primary/50 transition-colors z-10"></div>
+<div class="absolute top-2 right-2 w-4 h-4 border-t border-r border-white/20 group-hover:border-primary/50 transition-colors z-10"></div>
+<div class="relative h-48 bg-surface-container flex items-center justify-center p-4">
+<div class="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-surface-variant/50 to-surface-container-lowest"></div>
+<img class="relative z-10 max-h-full object-contain filter drop-shadow-2xl group-hover:scale-105 transition-transform duration-500" data-alt="A highly detailed 3D model of a heavy industrial laser cutter arm. Painted in warning yellow and dark gunmetal grey, the robotic arm shows signs of wear and scorch marks. The tool tip emits a faint orange glow. The asset is placed on a dark, reflective surface that creates a subtle pedestal shadow below it. High contrast industrial tech look." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCoLQ9sfMh7rddsKB7QIK4ZIx8lCfiJ-8CbT1TW2I3j2ULV-n9rXGG3o3_ajMERw_O8I2BN3cR8hO8gqYS43fkGLBP_1zkv-d3BJNGQ5tYHr_kI78dPLFexENbsZPH7RyObzygg_43DNc4rdpBoSBjxXJnvn_lg8J7wZoZClru9g3sUXdY-TkzWGJ30kmWBbOu1FSvT9YJXvfF-1Tpl8I4qyK10kQu6h49uVTNPnIOjHEYlBoTnbVsw"/>
+<div class="pedestal-shadow group-hover:opacity-100 opacity-50 transition-opacity"></div>
+<button class="absolute top-3 right-3 z-20 text-on-surface-variant hover:text-primary transition-colors bg-surface/50 rounded-full p-1.5 backdrop-blur-sm border border-white/10">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 0;">favorite</span>
+</button>
+</div>
+<div class="p-4 relative z-10 bg-gradient-to-t from-surface-container-low to-transparent">
+<div class="flex gap-2 mb-2">
+<span class="tech-chip text-[10px] px-2 py-0.5 rounded font-tech-label">FBX</span>
+<span class="tech-chip text-[10px] px-2 py-0.5 rounded font-tech-label">Game Ready</span>
+</div>
+<h3 class="font-body-lg text-body-lg text-on-surface font-semibold mb-1 truncate">Industrial Laser Arm</h3>
+<p class="text-on-surface-variant text-sm mb-3">By FactoryAssets</p>
+<div class="flex justify-between items-end mt-4">
+<div class="font-price-display text-price-display text-primary">1,800 <span class="text-sm text-primary/70">DZD</span></div>
+<div class="flex items-center gap-1 bg-surface-container-high px-2 py-1 rounded border border-white/5">
+<span class="material-symbols-outlined text-[14px] text-[#fbbf24]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="text-sm text-on-surface font-bold">4.5</span>
+</div>
+</div>
+</div>
+<div class="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-secondary to-primary transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-300"></div>
+</div>
+</div>
+<!-- Pagination -->
+<div class="flex justify-center items-center gap-2 mt-12">
+<button class="w-10 h-10 flex items-center justify-center rounded border border-outline-variant text-on-surface-variant hover:border-primary hover:text-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+<span class="material-symbols-outlined">chevron_left</span>
+</button>
+<button class="w-10 h-10 flex items-center justify-center rounded bg-primary text-on-primary font-tech-label font-bold shadow-[0_0_15px_rgba(255,106,61,0.4)]">1</button>
+<button class="w-10 h-10 flex items-center justify-center rounded border border-outline-variant text-on-surface-variant hover:border-primary hover:text-primary transition-colors font-tech-label">2</button>
+<button class="w-10 h-10 flex items-center justify-center rounded border border-outline-variant text-on-surface-variant hover:border-primary hover:text-primary transition-colors font-tech-label">3</button>
+<span class="text-on-surface-variant px-2">...</span>
+<button class="w-10 h-10 flex items-center justify-center rounded border border-outline-variant text-on-surface-variant hover:border-primary hover:text-primary transition-colors font-tech-label">30</button>
+<button class="w-10 h-10 flex items-center justify-center rounded border border-outline-variant text-on-surface-variant hover:border-primary hover:text-primary transition-colors">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer (Shared Component JSON) -->
+<footer class="w-full py-stack-lg px-margin-desktop grid grid-cols-1 md:grid-cols-4 gap-gutter bg-surface-container-lowest border-t border-outline-variant">
+<div class="col-span-1 md:col-span-4 mb-8 flex flex-col md:flex-row justify-between items-start md:items-center border-b border-outline-variant pb-8">
+<span class="font-display-lg text-display-lg text-on-surface tracking-tighter font-black">3D DZ</span>
+<p class="text-on-surface-variant font-tech-label text-tech-label mt-4 md:mt-0">© 2024 3D DZ. Manufacturing the future.</p>
+</div>
+<div class="flex flex-col gap-4">
+<h4 class="font-tech-label text-tech-label text-secondary uppercase tracking-widest mb-2">Platform</h4>
+<a class="text-on-surface-variant hover:text-secondary-container transition-colors underline-offset-4 hover:underline" href="#">Explore Models</a>
+<a class="text-on-surface-variant hover:text-secondary-container transition-colors underline-offset-4 hover:underline" href="#">Categories</a>
+<a class="text-on-surface-variant hover:text-secondary-container transition-colors underline-offset-4 hover:underline" href="#">Become a Seller</a>
+</div>
+<div class="flex flex-col gap-4">
+<h4 class="font-tech-label text-tech-label text-secondary uppercase tracking-widest mb-2">Legal</h4>
+<a class="text-on-surface-variant hover:text-secondary-container transition-colors underline-offset-4 hover:underline" href="#">Terms of Service</a>
+<a class="text-on-surface-variant hover:text-secondary-container transition-colors underline-offset-4 hover:underline" href="#">Privacy Policy</a>
+<a class="text-on-surface-variant hover:text-secondary-container transition-colors underline-offset-4 hover:underline" href="#">Licensing</a>
+</div>
+<div class="flex flex-col gap-4">
+<h4 class="font-tech-label text-tech-label text-secondary uppercase tracking-widest mb-2">Resources</h4>
+<a class="text-on-surface-variant hover:text-secondary-container transition-colors underline-offset-4 hover:underline" href="#">Support</a>
+<a class="text-on-surface-variant hover:text-secondary-container transition-colors underline-offset-4 hover:underline" href="#">API Documentation</a>
+<a class="text-on-surface-variant hover:text-secondary-container transition-colors underline-offset-4 hover:underline" href="#">Community Forum</a>
+</div>
+<div class="flex flex-col gap-4">
+<h4 class="font-tech-label text-tech-label text-secondary uppercase tracking-widest mb-2">Connect</h4>
+<div class="flex gap-4 mt-2">
+<a class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface hover:bg-primary hover:text-on-primary transition-all shadow-[0_0_15px_rgba(255,255,255,0.05)] hover:shadow-[0_0_20px_rgba(255,106,61,0.5)]" href="#">
+<span class="material-symbols-outlined">share</span>
+</a>
+<a class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface hover:bg-primary hover:text-on-primary transition-all shadow-[0_0_15px_rgba(255,255,255,0.05)] hover:shadow-[0_0_20px_rgba(255,106,61,0.5)]" href="#">
+<span class="material-symbols-outlined">forum</span>
+</a>
+</div>
+</div>
+</footer>
+</body></html>

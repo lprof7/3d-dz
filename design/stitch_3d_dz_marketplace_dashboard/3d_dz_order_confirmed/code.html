@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>3D DZ Order Confirmation</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;800&amp;family=JetBrains+Mono:wght@500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary-fixed-variant": "#862200",
+                        "on-primary": "#5f1500",
+                        "surface-bright": "#37393f",
+                        "primary-container": "#ff6a3d",
+                        "surface-variant": "#33353a",
+                        "on-tertiary-fixed": "#151b2a",
+                        "on-secondary-fixed-variant": "#004e5a",
+                        "surface-container-low": "#1a1b21",
+                        "error-container": "#93000a",
+                        "on-primary-fixed": "#3b0a00",
+                        "secondary-fixed-dim": "#2fd9f4",
+                        "secondary-fixed": "#a2eeff",
+                        "on-background": "#e2e2e9",
+                        "surface": "#111318",
+                        "tertiary-fixed-dim": "#c0c6da",
+                        "on-error-container": "#ffdad6",
+                        "primary": "#ffb59f",
+                        "secondary": "#5de6ff",
+                        "on-secondary": "#00363e",
+                        "on-error": "#690005",
+                        "primary-fixed": "#ffdbd1",
+                        "on-tertiary": "#2a3040",
+                        "tertiary-fixed": "#dce2f7",
+                        "surface-container-lowest": "#0c0e13",
+                        "on-surface": "#e2e2e9",
+                        "surface-container": "#1e1f25",
+                        "secondary-container": "#00cbe6",
+                        "surface-container-high": "#282a2f",
+                        "primary-fixed-dim": "#ffb59f",
+                        "inverse-surface": "#e2e2e9",
+                        "tertiary-container": "#9399ac",
+                        "on-tertiary-fixed-variant": "#404757",
+                        "on-secondary-container": "#00515d",
+                        "outline": "#a98a81",
+                        "surface-dim": "#111318",
+                        "surface-tint": "#ffb59f",
+                        "tertiary": "#c0c6da",
+                        "inverse-on-surface": "#2e3036",
+                        "error": "#ffb4ab",
+                        "on-tertiary-container": "#2b3141",
+                        "on-secondary-fixed": "#001f25",
+                        "inverse-primary": "#ae3104",
+                        "surface-container-highest": "#33353a",
+                        "on-surface-variant": "#e1bfb6",
+                        "outline-variant": "#59413a",
+                        "on-primary-container": "#611600",
+                        "background": "#111318"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-desktop": "40px",
+                        "stack-sm": "12px",
+                        "container-max": "1440px",
+                        "gutter": "24px",
+                        "stack-md": "24px",
+                        "margin-mobile": "16px",
+                        "base": "8px",
+                        "stack-lg": "48px"
+                    },
+                    "fontFamily": {
+                        "display-lg": ["Sora"],
+                        "tech-label": ["JetBrains Mono"],
+                        "body-md": ["Sora"],
+                        "headline-md": ["Sora"],
+                        "display-lg-mobile": ["Sora"],
+                        "body-lg": ["Sora"],
+                        "price-display": ["JetBrains Mono"]
+                    },
+                    "fontSize": {
+                        "display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "800" }],
+                        "tech-label": ["14px", { "lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "500" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "display-lg-mobile": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "800" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "price-display": ["20px", { "lineHeight": "24px", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        
+        /* Glassmorphism utility classes */
+        .glass-panel {
+            background: rgba(26, 29, 39, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .ambient-glow {
+            box-shadow: 0 0 40px -15px rgba(255, 106, 61, 0.3);
+        }
+
+        /* Confetti Animation */
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(10deg); }
+        }
+        .tech-confetti {
+            animation: float 4s ease-in-out infinite;
+        }
+        .tech-confetti:nth-child(even) {
+            animation-duration: 5s;
+            animation-direction: reverse;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface min-h-screen flex flex-col font-body-md overflow-x-hidden">
+<!-- TopNavBar Suppressed: Transactional/Success Screen -->
+<main class="flex-grow flex items-center justify-center p-margin-mobile md:p-margin-desktop relative z-10 overflow-hidden min-h-screen">
+<!-- Background Accents -->
+<div class="absolute inset-0 pointer-events-none z-0">
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/5 rounded-full blur-[100px]"></div>
+<div class="absolute top-1/4 right-1/4 w-[400px] h-[400px] bg-secondary/5 rounded-full blur-[80px]"></div>
+</div>
+<div class="glass-panel rounded-xl p-stack-lg max-w-2xl w-full text-center relative z-10 flex flex-col items-center ambient-glow">
+<!-- Floating Tech Confetti Background Details -->
+<div class="absolute inset-0 pointer-events-none overflow-hidden rounded-xl opacity-30">
+<div class="tech-confetti absolute top-[10%] left-[15%] w-4 h-4 border border-secondary rounded-sm rotate-12"></div>
+<div class="tech-confetti absolute top-[20%] right-[15%] w-3 h-3 bg-primary rounded-full blur-[2px]"></div>
+<div class="tech-confetti absolute bottom-[20%] left-[20%] w-6 h-[2px] bg-secondary rotate-45"></div>
+<div class="tech-confetti absolute bottom-[15%] right-[20%] w-4 h-4 border border-primary rounded-sm rotate-[60deg]"></div>
+<div class="tech-confetti absolute top-[40%] left-[5%] w-2 h-2 bg-on-surface rounded-full"></div>
+</div>
+<!-- 3D Checkmark Visual Container -->
+<div class="relative w-48 h-48 mb-stack-md flex items-center justify-center group">
+<!-- Pedestal Glow -->
+<div class="absolute bottom-0 w-32 h-4 bg-primary rounded-full blur-xl opacity-50 group-hover:opacity-80 transition-opacity duration-700"></div>
+<!-- The Checkmark Image -->
+<div class="relative w-full h-full z-10 animate-[bounce_2s_infinite_ease-in-out]">
+<img class="object-contain w-full h-full drop-shadow-[0_0_20px_rgba(255,106,61,0.5)]" data-alt="A highly detailed 3D rendering of a glowing checkmark icon floating above a metallic pedestal. The checkmark is rendered in a glossy, high-energy translucent orange material (resembling high-end 3D printing filament) with intense edge lighting. The background is dark and moody, evoking a sleek, futuristic tech interface or digital fabrication workshop, highlighting the glowing object with subtle ambient lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC0Wtf4zrlA8JZ-jTGPUCLJ1wJZzkS_Up4A8LmGD2lNlctrgtbbRp0xulk-s__sRAjWpUvF_OzkY9FqxZukB72LpUkbXLY4E-bzJjBk6PliWj413FwWUObb8UMboFR2VZoD8KVeIRI0gQgl2fkzJ1KxLZVkc1EXdkg5LiAD6DzbWB3W0LX-gbqkuVSt168s4I8wyzwNcRXPIBkzbk_00f3HhYiGM_Har9keA1yjLRDg4L__5pFSaqyT"/>
+</div>
+<!-- HUD Decorators -->
+<div class="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-outline-variant opacity-50"></div>
+<div class="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-outline-variant opacity-50"></div>
+<div class="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-outline-variant opacity-50"></div>
+<div class="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-outline-variant opacity-50"></div>
+</div>
+<!-- Content -->
+<h1 class="font-display-lg text-display-lg font-black text-on-surface mb-stack-sm tracking-tighter">Order Received!</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant mb-stack-md max-w-md mx-auto">
+                Your request has been successfully submitted to our fabrication queue. We will contact you shortly via phone to confirm details.
+            </p>
+<div class="bg-surface-container/50 border border-outline-variant/30 rounded-lg py-stack-sm px-gutter mb-stack-lg flex flex-col items-center justify-center w-full max-w-sm">
+<span class="font-tech-label text-tech-label text-secondary mb-1">REFERENCE NO.</span>
+<span class="font-price-display text-price-display text-primary tracking-widest">DZ-884-X992</span>
+</div>
+<!-- Action -->
+<a class="group relative px-gutter py-stack-sm bg-primary-container text-white font-headline-md text-body-md rounded-lg overflow-hidden transition-all duration-300 hover:shadow-[0_0_30px_-5px_rgba(255,106,61,0.6)]" href="/">
+<div class="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent pointer-events-none"></div>
+<span class="relative z-10 flex items-center gap-2">
+                    Back to Home
+                    <span class="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform" data-icon="arrow_forward">arrow_forward</span>
+</span>
+</a>
+</div>
+</main>
+<!-- Footer -->
+<footer class="bg-surface-container-lowest w-full py-stack-lg px-margin-desktop grid grid-cols-1 md:grid-cols-4 gap-gutter border-t border-outline-variant z-10 relative">
+<div class="flex flex-col gap-4">
+<span class="font-display-lg text-headline-md font-black text-on-surface tracking-tighter">3D DZ</span>
+<span class="font-body-md text-tech-label text-on-surface-variant">© 2024 3D DZ. Manufacturing the future.</span>
+</div>
+<div class="col-span-1 md:col-span-3 flex flex-wrap justify-end gap-x-gutter gap-y-4 items-center">
+<a class="font-body-md text-tech-label text-on-surface-variant hover:text-secondary-container transition-colors underline-offset-4 hover:underline" href="#">Terms of Service</a>
+<a class="font-body-md text-tech-label text-on-surface-variant hover:text-secondary-container transition-colors underline-offset-4 hover:underline" href="#">Privacy Policy</a>
+<a class="font-body-md text-tech-label text-on-surface-variant hover:text-secondary-container transition-colors underline-offset-4 hover:underline" href="#">Licensing</a>
+<a class="font-body-md text-tech-label text-on-surface-variant hover:text-secondary-container transition-colors underline-offset-4 hover:underline" href="#">Support</a>
+<a class="font-body-md text-tech-label text-on-surface-variant hover:text-secondary-container transition-colors underline-offset-4 hover:underline" href="#">API Documentation</a>
+</div>
+</footer>
+</body></html>

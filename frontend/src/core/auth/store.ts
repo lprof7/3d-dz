@@ -15,6 +15,7 @@ interface AuthState {
   token: string | null;
   loading: boolean;
   error: string | null;
+  bootstrapped: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (data: { fullName: string; email: string; phone: string; password: string }) => Promise<void>;
   logout: () => void;
@@ -27,6 +28,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   token: localStorage.getItem('token'),
   loading: false,
   error: null,
+  bootstrapped: false,
 
   login: async (email, password) => {
     set({ loading: true, error: null });
@@ -64,14 +66,22 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   loadUser: () => {
     const token = localStorage.getItem('token');
-    if (!token) return;
+    if (!token) { set({ bootstrapped: true }); return; }
     api.get('/auth/me').then(({ data }) => {
       localStorage.setItem('user', JSON.stringify(data.user));
-      set({ user: data.user, token });
-    }).catch(() => {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      set({ user: null, token: null });
+      set({ user: data.user, token, bootstrapped: true });
+    }).catch((err) => {
+      const status = err.response?.status;
+      if (status === 401 || status === 404) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        set({ user: null, token: null, bootstrapped: true });
+        if (status === 401) {
+          window.location.href = '/auth?mode=login';
+        }
+      } else {
+        set({ bootstrapped: true });
+      }
     });
   },
 

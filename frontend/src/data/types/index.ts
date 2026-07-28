@@ -30,18 +30,18 @@ export interface Product {
 
 export interface Category {
   id: string;
-  name: string;
+  name: string | LocalizedString;
   slug: string;
-  description?: string;
+  description?: string | LocalizedString;
   imageUrl?: string;
   productCount?: number;
 }
 
 export interface Collection {
   id: string;
-  name: string;
+  name: string | LocalizedString;
   slug: string;
-  description?: string;
+  description?: string | LocalizedString;
   imageUrl?: string;
 }
 
@@ -77,10 +77,12 @@ export interface InternalNote {
   text: string;
   createdAt: string;
   adminId?: string;
+  status?: number;
 }
 
 export interface StatusEntry {
-  status: number;
+  status?: number;
+  text: string;
   createdAt: string;
   adminId?: string;
 }
@@ -105,17 +107,17 @@ export interface Review {
 
 export interface Banner {
   id: string;
-  title: string;
-  subtitle?: string;
+  title: string | LocalizedString;
+  subtitle?: string | LocalizedString;
   imageUrl: string;
   linkUrl?: string;
-  ctaText?: string;
-  isActive: boolean;
+  ctaText?: string | LocalizedString;
+  active: boolean;
   sortOrder: number;
 }
 
 export interface Wilaya {
   id: string;
-  name: string;
+  name: string | LocalizedString;
   code: number;
 }

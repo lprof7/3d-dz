@@ -11,7 +11,8 @@ public class ImageKitService : IImageKitService
     private readonly IConfiguration _config;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly ILogger<ImageKitService> _logger;
-    public string PublicKey => _config["IMAGEKIT_PUBLIC_KEY"] ?? string.Empty;
+    private string GetConfig(string key) => _config[$"IMAGEKIT_{key}"] ?? _config[$"ImageKit:{key}"] ?? string.Empty;
+    public string PublicKey => GetConfig("PUBLIC_KEY");
 
     public ImageKitService(IConfiguration config, IHttpClientFactory httpClientFactory, ILogger<ImageKitService> logger)
     {
@@ -22,8 +23,8 @@ public class ImageKitService : IImageKitService
 
     public async Task<string> UploadFileAsync(Stream stream, string fileName, string folder = "3d-dz")
     {
-        var privateKey = _config["IMAGEKIT_PRIVATE_KEY"];
-        var urlEndpoint = _config["IMAGEKIT_URL_ENDPOINT"];
+        var privateKey = GetConfig("PRIVATE_KEY");
+        var urlEndpoint = GetConfig("URL_ENDPOINT");
         if (string.IsNullOrWhiteSpace(privateKey) || string.IsNullOrWhiteSpace(urlEndpoint))
         {
             _logger.LogError("ImageKit not configured: missing PrivateKey or UrlEndpoint");

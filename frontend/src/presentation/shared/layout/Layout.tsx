@@ -72,7 +72,7 @@ export function Header() {
         <div className="flex items-center gap-3 shrink-0">
           <LanguageSwitcher />
 
-          <Link to="/account" className="text-on-surface-variant hover:text-primary transition-colors relative">
+          <Link to={user ? "/favorites" : "/auth?mode=login"} className="text-on-surface-variant hover:text-primary transition-colors relative">
             <span className="material-symbols-outlined text-xl">favorite</span>
           </Link>
 
@@ -102,6 +102,8 @@ export function Header() {
 
 export function Footer() {
   const { t } = useTranslation();
+  const user = useAuthStore(s => s.user);
+  const logout = useAuthStore(s => s.logout);
 
   return (
     <footer className="border-t border-outline-variant/30 mt-16" style={{ backgroundColor: '#1a1b21' }}>
@@ -121,8 +123,19 @@ export function Footer() {
           <div>
             <h4 className="text-body-md font-semibold text-on-surface mb-3">{t('nav.myAccount')}</h4>
             <div className="flex flex-col gap-2">
-              <Link to="/auth?mode=login" className="text-body-sm text-on-surface-variant hover:text-primary">{t('nav.login')}</Link>
-              <Link to="/auth?mode=register" className="text-body-sm text-on-surface-variant hover:text-primary">{t('nav.register')}</Link>
+              {user ? (
+                <>
+                  <Link to="/account" className="text-body-sm text-on-surface-variant hover:text-primary">{t('nav.myProfile')}</Link>
+                  <Link to="/favorites" className="text-body-sm text-on-surface-variant hover:text-primary">{t('nav.favorites')}</Link>
+                  <Link to="/account" className="text-body-sm text-on-surface-variant hover:text-primary">{t('nav.myOrders')}</Link>
+                  <button onClick={logout} className="text-body-sm text-on-surface-variant hover:text-primary text-left">{t('nav.logout')}</button>
+                </>
+              ) : (
+                <>
+                  <Link to="/auth?mode=login" className="text-body-sm text-on-surface-variant hover:text-primary">{t('nav.login')}</Link>
+                  <Link to="/auth?mode=register" className="text-body-sm text-on-surface-variant hover:text-primary">{t('nav.register')}</Link>
+                </>
+              )}
             </div>
           </div>
           <div>

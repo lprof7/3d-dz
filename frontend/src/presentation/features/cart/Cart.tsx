@@ -2,12 +2,14 @@ import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useCartStore } from '../../../core/store/cart';
+import { useAuthStore } from '../../../core/auth/store';
 
 export default function Cart() {
   const { t } = useTranslation();
   const { items, total, loading, fetchCart, removeItem, updateQuantity, itemCount, clearCart } = useCartStore();
+  const token = useAuthStore(s => s.token);
 
-  useEffect(() => { fetchCart(); }, []);
+  useEffect(() => { if (token) fetchCart(); }, [token]);
 
   if (loading) return <div className="flex items-center justify-center min-h-screen"><span className="material-symbols-outlined animate-spin text-primary text-3xl">progress_activity</span></div>;
 

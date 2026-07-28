@@ -15,7 +15,7 @@ public class JwtService
 
     public JwtService(IConfiguration config)
     {
-        _secret = config["JWT_SECRET"] ?? "default-secret-change-me-in-production-at-least-32-chars!!";
+        _secret = Environment.GetEnvironmentVariable("JWT_SECRET") ?? config["JWT_SECRET"] ?? "default-secret-change-me-32-chars-min!!";
         _issuer = config["JWT_ISSUER"] ?? "3d-dz";
         _audience = config["JWT_AUDIENCE"] ?? "3d-dz";
     }

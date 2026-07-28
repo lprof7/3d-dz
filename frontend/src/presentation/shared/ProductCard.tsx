@@ -57,8 +57,9 @@ export default function ProductCard({ product }: { product: Product }) {
               <span className="text-body-sm text-primary">{product.avgRating.toFixed(1)}</span>
               <div className="flex">
                 {Array.from({ length: 5 }, (_, i) => (
-                  <span key={i} className={`material-symbols-outlined text-sm ${i < Math.round(product.avgRating || 0) ? 'text-primary' : 'text-outline-variant'}`}>
-                    {i < Math.round(product.avgRating || 0) ? 'star' : 'star_border'}
+                  <span key={i} className={`material-symbols-outlined text-sm ${i < Math.round(product.avgRating || 0) ? 'text-primary' : 'text-outline-variant'}`}
+                    style={i < Math.round(product.avgRating || 0) ? { fontVariationSettings: "'FILL' 1" } : undefined}>
+                    star
                   </span>
                 ))}
               </div>
@@ -67,7 +68,7 @@ export default function ProductCard({ product }: { product: Product }) {
           )}
         </div>
       </Link>
-      <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); addItem(product.id); }}
+      <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (!user) { navigate(`/auth?mode=login&next=${encodeURIComponent(location.pathname)}`); return; } addItem(product.id); }}
         className="absolute bottom-4 right-4 w-10 h-10 rounded-full bg-primary text-on-primary flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg hover:bg-primary/90"
         title="Add to cart">
         <span className="material-symbols-outlined text-lg">add_shopping_cart</span>

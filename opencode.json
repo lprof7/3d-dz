@@ -6,7 +6,7 @@
       "url": "https://stitch.googleapis.com/mcp",
       "enabled": true,
       "headers": {
-        "X-Goog-Api-Key": "YOUR_GOOGLE_API_KEY"
+        "X-Goog-Api-Key": "REDACTED_STITCH_KEY"
       }
     },
     "github": {
@@ -15,7 +15,7 @@
       "enabled": true,
       "oauth": false,
       "headers": {
-        "Authorization": "Bearer YOUR_GITHUB_TOKEN"
+        "Authorization": "REDACTED_GITHUB_TOKEN"
       }
     }
   }

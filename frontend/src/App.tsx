@@ -47,7 +47,16 @@ function PublicLayout() {
 
 function ProtectedRoute({ children, adminOnly }: { children: React.ReactNode; adminOnly?: boolean }) {
   const user = useAuthStore(s => s.user);
-  if (!user) return <Navigate to="/auth?mode=login" replace />;
+  const bootstrapped = useAuthStore(s => s.bootstrapped);
+  if (!bootstrapped) return (
+    <div className="flex items-center justify-center min-h-screen">
+      <span className="material-symbols-outlined text-4xl text-primary animate-spin">progress_activity</span>
+    </div>
+  );
+  if (!user) {
+    const next = encodeURIComponent(window.location.pathname + window.location.search);
+    return <Navigate to={`/auth?mode=login&next=${next}`} replace />;
+  }
   if (adminOnly && user.role !== 'Admin') return <Navigate to="/" replace />;
   return <>{children}</>;
 }
@@ -74,7 +83,7 @@ export default function App() {
           <Route path="/cart" element={<Cart />} />
           <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
           <Route path="/auth" element={<Auth />} />
-          <Route path="/favorites" element={<ProtectedRoute><Account /></ProtectedRoute>} />
+          <Route path="/favorites" element={<ProtectedRoute><Account defaultTab="favorites" /></ProtectedRoute>} />
           <Route path="/account" element={<ProtectedRoute><Account /></ProtectedRoute>} />
           <Route path="/admin" element={<ProtectedRoute adminOnly><AdminDashboard /></ProtectedRoute>} />
           <Route path="*" element={<NotFound />} />

@@ -23,8 +23,8 @@ public class ReviewService : IReviewService
         if (!string.IsNullOrWhiteSpace(orderId))
         {
             var order = await _orderRepo.GetByIdAsync(orderId);
-            if (order == null || order.Status != OrderStatus.Completed)
-                throw new InvalidOperationException("Cannot review: order not completed");
+            if (order == null || (order.Status != OrderStatus.Completed && order.Status != OrderStatus.Confirmed))
+                throw new InvalidOperationException("Cannot review: order must be confirmed or completed");
             if (order.CustomerId != customerId)
                 throw new InvalidOperationException("This order does not belong to you");
             if (!order.Items.Any(i => i.ProductId == productId))
@@ -85,6 +85,6 @@ public class ReviewService : IReviewService
         var existing = await _reviewRepo.GetByCustomerAndProductAsync(customerId, productId);
         if (existing.Any()) return true; // allow edit
         var orders = await _orderRepo.GetByCustomerAsync(customerId);
-        return orders.Any(o => o.Status == OrderStatus.Completed && o.Items.Any(i => i.ProductId == productId));
+        return orders.Any(o => (o.Status == OrderStatus.Completed || o.Status == OrderStatus.Confirmed) && o.Items.Any(i => i.ProductId == productId));
     }
 }

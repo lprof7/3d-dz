@@ -1,4 +1,5 @@
 using System.Linq.Expressions;
+using MongoDB.Bson;
 using MongoDB.Driver;
 using ThreeDDz.Application.Interfaces;
 
@@ -15,11 +16,14 @@ public class MongoRepository<T> : IRepository<T> where T : class
         Collection = context.GetCollection<T>();
     }
 
+    private static FilterDefinition<T> IdFilter(string id) =>
+        Builders<T>.Filter.Eq("_id", new ObjectId(id));
+
     public async Task<List<T>> GetAllAsync() =>
         await Collection.Find(Builders<T>.Filter.Empty).ToListAsync();
 
     public async Task<T?> GetByIdAsync(string id) =>
-        await Collection.Find(Builders<T>.Filter.Eq("_id", id)).FirstOrDefaultAsync();
+        await Collection.Find(IdFilter(id)).FirstOrDefaultAsync();
 
     public async Task<List<T>> FindAsync(Expression<Func<T, bool>> predicate) =>
         await Collection.Find(predicate).ToListAsync();
@@ -31,10 +35,10 @@ public class MongoRepository<T> : IRepository<T> where T : class
         await Collection.InsertOneAsync(entity);
 
     public async Task UpdateAsync(string id, T entity) =>
-        await Collection.ReplaceOneAsync(Builders<T>.Filter.Eq("_id", id), entity);
+        await Collection.ReplaceOneAsync(IdFilter(id), entity);
 
     public async Task DeleteAsync(string id) =>
-        await Collection.DeleteOneAsync(Builders<T>.Filter.Eq("_id", id));
+        await Collection.DeleteOneAsync(IdFilter(id));
 
     public async Task<long> CountAsync(Expression<Func<T, bool>>? predicate = null) =>
         predicate == null

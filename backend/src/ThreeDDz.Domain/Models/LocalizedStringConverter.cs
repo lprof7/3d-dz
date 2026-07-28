@@ -20,6 +20,10 @@ public class LocalizedStringConverter : JsonConverter<LocalizedString>
 
     public override void Write(Utf8JsonWriter writer, LocalizedString value, JsonSerializerOptions options)
     {
-        writer.WriteStringValue(value.Fr ?? value.En ?? value.Ar ?? "");
+        writer.WriteStartObject();
+        writer.WriteString("ar", value.Ar ?? "");
+        writer.WriteString("fr", value.Fr ?? "");
+        writer.WriteString("en", value.En ?? "");
+        writer.WriteEndObject();
     }
 }

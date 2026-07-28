@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>3D DZ - My Orders</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;800&amp;family=JetBrains+Mono:wght@500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-primary-fixed-variant": "#862200",
+                      "on-primary": "#5f1500",
+                      "surface-bright": "#37393f",
+                      "primary-container": "#ff6a3d",
+                      "surface-variant": "#33353a",
+                      "on-tertiary-fixed": "#151b2a",
+                      "on-secondary-fixed-variant": "#004e5a",
+                      "surface-container-low": "#1a1b21",
+                      "error-container": "#93000a",
+                      "on-primary-fixed": "#3b0a00",
+                      "secondary-fixed-dim": "#2fd9f4",
+                      "secondary-fixed": "#a2eeff",
+                      "on-background": "#e2e2e9",
+                      "surface": "#111318",
+                      "tertiary-fixed-dim": "#c0c6da",
+                      "on-error-container": "#ffdad6",
+                      "primary": "#ffb59f",
+                      "secondary": "#5de6ff",
+                      "on-secondary": "#00363e",
+                      "on-error": "#690005",
+                      "primary-fixed": "#ffdbd1",
+                      "on-tertiary": "#2a3040",
+                      "tertiary-fixed": "#dce2f7",
+                      "surface-container-lowest": "#0c0e13",
+                      "on-surface": "#e2e2e9",
+                      "surface-container": "#1e1f25",
+                      "secondary-container": "#00cbe6",
+                      "surface-container-high": "#282a2f",
+                      "primary-fixed-dim": "#ffb59f",
+                      "inverse-surface": "#e2e2e9",
+                      "tertiary-container": "#9399ac",
+                      "on-tertiary-fixed-variant": "#404757",
+                      "on-secondary-container": "#00515d",
+                      "outline": "#a98a81",
+                      "surface-dim": "#111318",
+                      "surface-tint": "#ffb59f",
+                      "tertiary": "#c0c6da",
+                      "inverse-on-surface": "#2e3036",
+                      "error": "#ffb4ab",
+                      "on-tertiary-container": "#2b3141",
+                      "on-secondary-fixed": "#001f25",
+                      "inverse-primary": "#ae3104",
+                      "surface-container-highest": "#33353a",
+                      "on-surface-variant": "#e1bfb6",
+                      "outline-variant": "#59413a",
+                      "on-primary-container": "#611600",
+                      "background": "#111318"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "margin-desktop": "40px",
+                      "stack-sm": "12px",
+                      "container-max": "1440px",
+                      "gutter": "24px",
+                      "stack-md": "24px",
+                      "margin-mobile": "16px",
+                      "base": "8px",
+                      "stack-lg": "48px"
+              },
+              "fontFamily": {
+                      "display-lg": [
+                              "Sora"
+                      ],
+                      "tech-label": [
+                              "JetBrains Mono"
+                      ],
+                      "body-md": [
+                              "Sora"
+                      ],
+                      "headline-md": [
+                              "Sora"
+                      ],
+                      "display-lg-mobile": [
+                              "Sora"
+                      ],
+                      "body-lg": [
+                              "Sora"
+                      ],
+                      "price-display": [
+                              "JetBrains Mono"
+                      ]
+              },
+              "fontSize": {
+                      "display-lg": [
+                              "48px",
+                              {
+                                      "lineHeight": "56px",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "800"
+                              }
+                      ],
+                      "tech-label": [
+                              "14px",
+                              {
+                                      "lineHeight": "20px",
+                                      "letterSpacing": "0.05em",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "body-md": [
+                              "16px",
+                              {
+                                      "lineHeight": "24px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "headline-md": [
+                              "24px",
+                              {
+                                      "lineHeight": "32px",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "display-lg-mobile": [
+                              "32px",
+                              {
+                                      "lineHeight": "40px",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "800"
+                              }
+                      ],
+                      "body-lg": [
+                              "18px",
+                              {
+                                      "lineHeight": "28px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "price-display": [
+                              "20px",
+                              {
+                                      "lineHeight": "24px",
+                                      "fontWeight": "700"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+      </script>
+<style>
+        body {
+            background-color: #0D0F14;
+            color: #e2e2e9;
+        }
+        
+        .glass-panel {
+            background: rgba(26, 29, 39, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .glass-panel:hover {
+            border-color: rgba(255, 106, 61, 0.3);
+            box-shadow: 0 0 40px -15px rgba(255, 106, 61, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .ambient-glow {
+            box-shadow: 0 0 60px -20px rgba(255, 106, 61, 0.15);
+        }
+
+        .order-row {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .order-row:hover {
+            background: rgba(255, 106, 61, 0.03);
+            border-bottom-color: rgba(255, 106, 61, 0.2);
+        }
+
+        .order-details {
+            display: grid;
+            grid-template-rows: 0fr;
+            transition: grid-template-rows 0.3s ease-out;
+            background: #111318;
+        }
+
+        .order-details.expanded {
+            grid-template-rows: 1fr;
+        }
+
+        .order-details-inner {
+            overflow: hidden;
+        }
+        
+        .badge-pending { background-color: rgba(245, 158, 11, 0.1); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.2); }
+        .badge-confirmed { background-color: rgba(59, 130, 246, 0.1); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.2); }
+        .badge-rejected { background-color: rgba(239, 68, 68, 0.1); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.2); }
+        .badge-completed { background-color: rgba(16, 185, 129, 0.1); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.2); }
+    </style>
+</head>
+<body class="bg-background min-h-screen flex flex-col font-body-md text-body-md text-on-background selection:bg-primary-container selection:text-white">
+<!-- TopNavBar -->
+<nav class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-margin-desktop py-4 bg-surface/70 backdrop-blur-xl border-b border-white/10 shadow-[0_0_40px_-15px_rgba(255,106,61,0.3)]">
+<div class="flex items-center gap-8">
+<a class="font-display-lg text-display-lg font-black text-primary tracking-tighter" href="#">3D DZ</a>
+<div class="hidden md:flex items-center bg-surface-container-low border border-outline-variant rounded-full px-4 py-2 focus-within:border-secondary focus-within:shadow-[0_0_15px_-3px_rgba(93,230,255,0.3)] transition-all">
+<span class="material-symbols-outlined text-on-surface-variant mr-2" style="font-variation-settings: 'FILL' 0;">search</span>
+<input class="bg-transparent border-none outline-none text-on-surface w-64 placeholder:text-on-surface-variant font-tech-label text-tech-label" placeholder="Search components..." type="text"/>
+</div>
+</div>
+<div class="hidden md:flex items-center gap-8">
+<a class="text-on-surface-variant hover:text-primary transition-colors duration-300 active:scale-95 transition-transform font-body-md text-body-md" href="#">Categories</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors duration-300 active:scale-95 transition-transform font-body-md text-body-md" href="#">Explore</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors duration-300 active:scale-95 transition-transform font-body-md text-body-md" href="#">Newest</a>
+<a class="text-primary border-b-2 border-primary pb-1 transition-colors duration-300 active:scale-95 transition-transform font-body-md text-body-md" href="#">My Account</a> <!-- Inferred Active State based on user context -->
+</div>
+<div class="flex items-center gap-4">
+<button class="text-on-surface-variant hover:text-primary transition-colors duration-300 active:scale-95 transition-transform p-2 rounded-full hover:bg-surface-container-high">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">favorite</span>
+</button>
+<button class="text-on-surface-variant hover:text-primary transition-colors duration-300 active:scale-95 transition-transform p-2 rounded-full hover:bg-surface-container-high relative">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">shopping_cart</span>
+</button>
+<div class="w-px h-6 bg-outline-variant mx-2 hidden md:block"></div>
+<button class="hidden md:block px-4 py-2 rounded-lg font-tech-label text-tech-label border border-secondary text-secondary hover:bg-secondary/10 transition-all shadow-[0_0_15px_-3px_rgba(93,230,255,0)] hover:shadow-[0_0_15px_-3px_rgba(93,230,255,0.2)]">Login</button>
+<button class="px-4 py-2 rounded-lg font-tech-label text-tech-label bg-primary-container text-white hover:brightness-110 active:scale-95 transition-all shadow-[0_4px_14px_0_rgba(255,106,61,0.39)]">Register</button>
+</div>
+</nav>
+<!-- Main Content Canvas -->
+<main class="flex-grow pt-[104px] pb-stack-lg px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto w-full flex flex-col md:flex-row gap-gutter">
+<!-- Sidebar Navigation (Account Context) -->
+<aside class="w-full md:w-64 flex-shrink-0 flex flex-col gap-2 mb-8 md:mb-0">
+<div class="glass-panel rounded-xl p-6 mb-6">
+<div class="flex items-center gap-4 mb-4">
+<div class="w-12 h-12 rounded-full bg-surface-container-high border border-outline-variant overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A futuristic sci-fi avatar profile picture of a digital creator, high contrast neon lighting, sleek cyberpunk aesthetic, close up." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDZhyj-5O-oeJ9yutl-kQJkHBZ67j7UdVl1D0T90qWnOQTvmZZHwLgU4WGU6JBaSZeDSQTXQFRr6PfKzli3VfCBXU9ClwQsBlitDg4IDMW3qkHA_oWW8cqFTA1_6bWAAXwlm6x-fDuUKlnd5w3kxhzKG7MvsVUYQnTLNFwMUea_2MvZifcrI7efMd34yDpJRjhoZDvF20z--HMgVGxNtRUZsCP8942KsZZu-jOLgYux1WJRzxHeE_Ta"/>
+</div>
+<div>
+<h2 class="font-headline-md text-headline-md text-on-surface mb-1">User_8492</h2>
+<p class="font-tech-label text-tech-label text-on-surface-variant">Pro Fabricator</p>
+</div>
+</div>
+</div>
+<nav class="flex flex-col gap-1">
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-primary transition-all font-tech-label text-tech-label" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">person</span>
+                    Profile
+                </a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg bg-primary-container/10 text-primary border-l-2 border-primary transition-all font-tech-label text-tech-label" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">shopping_bag</span>
+                    My Orders
+                </a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-primary transition-all font-tech-label text-tech-label" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">favorite</span>
+                    Saved Models
+                </a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-primary transition-all font-tech-label text-tech-label" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">settings</span>
+                    Settings
+                </a>
+</nav>
+</aside>
+<!-- Orders Area -->
+<section class="flex-grow">
+<header class="mb-stack-md flex justify-between items-end">
+<div>
+<h1 class="font-display-lg text-display-lg font-black text-on-surface mb-2">My Orders</h1>
+<p class="font-body-md text-body-md text-on-surface-variant">Manage and track your recent fabrication requests.</p>
+</div>
+<div class="hidden md:flex gap-2">
+<button class="px-4 py-2 rounded-lg font-tech-label text-tech-label bg-surface-container-high border border-outline-variant text-on-surface hover:border-secondary transition-all flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">filter_list</span> Filter
+                    </button>
+</div>
+</header>
+<div class="glass-panel rounded-xl overflow-hidden ambient-glow">
+<!-- Table Header -->
+<div class="grid grid-cols-12 gap-4 p-4 border-b border-white/10 bg-surface/50 font-tech-label text-tech-label text-on-surface-variant uppercase tracking-wider text-xs">
+<div class="col-span-3">Order ID</div>
+<div class="col-span-3">Date</div>
+<div class="col-span-3">Amount</div>
+<div class="col-span-3">Status</div>
+</div>
+<!-- Order Row 1 -->
+<div class="order-group">
+<div class="grid grid-cols-12 gap-4 p-4 order-row items-center cursor-pointer font-tech-label text-tech-label" onclick="toggleOrder(this)">
+<div class="col-span-3 text-secondary">#ORD-992-FX</div>
+<div class="col-span-3 text-on-surface">Oct 24, 2024</div>
+<div class="col-span-3 font-price-display text-price-display text-on-surface">$145.00</div>
+<div class="col-span-3 flex justify-between items-center">
+<span class="px-3 py-1 rounded-full text-xs font-bold badge-completed uppercase">Completed</span>
+<span class="material-symbols-outlined text-on-surface-variant expand-icon transition-transform">expand_more</span>
+</div>
+</div>
+<!-- Expanded Details -->
+<div class="order-details">
+<div class="order-details-inner px-6 py-4 border-b border-white/5">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div>
+<h4 class="font-headline-md text-headline-md text-on-surface mb-4">Items</h4>
+<div class="flex items-center gap-4 mb-3 bg-surface-container-low p-3 rounded-lg border border-outline-variant">
+<div class="w-16 h-16 rounded bg-surface-container-highest flex-shrink-0 relative">
+<img class="w-full h-full object-cover rounded" data-alt="A highly detailed 3D render of a mechanical gear assembly, metallic textures, dramatic studio lighting, dark background, sharp focus, industrial design style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBQwGHgeKMwS4HPNcpgd44P7FzDLOjgK3LYX6VvzknXN-4RWO_Melutmn5fHitqK62mXGdeRUlhFhiITjSGWy_s8ODbVkJCHM7LYiPAR2PkbNbyXwP57XZeBrxBrA8oJsEEKHoeih35MO860wCAp3rCyk1nPLKbGXUzONjahY1PnDBoKbREA0dAsYu5TrjHk-GgoFIqQvc0_q4TgKEONjhVK6o9lqZGgE2hhzRM5tR5Yq8ZZ2TL3Slb"/>
+<div class="absolute -bottom-2 left-1/2 -translate-x-1/2 w-3/4 h-2 bg-primary/20 blur-md rounded-full"></div>
+</div>
+<div class="flex-grow">
+<p class="font-body-lg text-body-lg text-on-surface font-semibold">Titanium Gear Set V2</p>
+<p class="font-tech-label text-tech-label text-on-surface-variant">Qty: 2 • STL Format</p>
+</div>
+<div class="font-price-display text-price-display text-on-surface">$90.00</div>
+</div>
+<div class="flex items-center gap-4 bg-surface-container-low p-3 rounded-lg border border-outline-variant">
+<div class="w-16 h-16 rounded bg-surface-container-highest flex-shrink-0 relative">
+<img class="w-full h-full object-cover rounded" data-alt="A high-tech sci-fi drone casing, sleek curves, glowing cyan accents, dark carbon fiber texture, dramatic edge lighting, 3D printed prototype." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB8F0qtwARR8yLznQuezReZ6Gn9MLljWbluNVh8K8FaV0TcgHNtFxx_nTU_l5_xGCEKxS9oj2xxRWqiUn54lo2Ozf1whjE7IB7RdM4J3NOnQcnsCa46A6AkylIDGGQrnzVPsYIf3gMUYwdt6eigJvxawZPxmwj_pr50K-LBHIqLfrxer9jb7ZfdZW3hF4KvAHqKkkNQNoNruj18h1s5z9CHrLHh0804L8VmcNeZBa-Rk4hPtMryTZja"/>
+<div class="absolute -bottom-2 left-1/2 -translate-x-1/2 w-3/4 h-2 bg-secondary/20 blur-md rounded-full"></div>
+</div>
+<div class="flex-grow">
+<p class="font-body-lg text-body-lg text-on-surface font-semibold">Drone Chassis Shell</p>
+<p class="font-tech-label text-tech-label text-on-surface-variant">Qty: 1 • OBJ Format</p>
+</div>
+<div class="font-price-display text-price-display text-on-surface">$55.00</div>
+</div>
+</div>
+<div class="bg-surface-container-low p-6 rounded-lg border border-outline-variant">
+<h4 class="font-headline-md text-headline-md text-on-surface mb-4">Summary</h4>
+<div class="space-y-2 font-tech-label text-tech-label">
+<div class="flex justify-between text-on-surface-variant"><span>Subtotal</span><span>$145.00</span></div>
+<div class="flex justify-between text-on-surface-variant"><span>Processing Fee</span><span>$0.00</span></div>
+<div class="flex justify-between text-on-surface pt-2 border-t border-outline-variant font-bold mt-2"><span>Total</span><span class="font-price-display text-price-display text-primary-container">$145.00</span></div>
+</div>
+<button class="w-full mt-6 px-4 py-2 rounded-lg font-tech-label text-tech-label border border-secondary text-secondary hover:bg-secondary/10 transition-all">Download Invoice</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Order Row 2 -->
+<div class="order-group">
+<div class="grid grid-cols-12 gap-4 p-4 order-row items-center cursor-pointer font-tech-label text-tech-label" onclick="toggleOrder(this)">
+<div class="col-span-3 text-secondary">#ORD-881-KZ</div>
+<div class="col-span-3 text-on-surface">Oct 28, 2024</div>
+<div class="col-span-3 font-price-display text-price-display text-on-surface">$320.50</div>
+<div class="col-span-3 flex justify-between items-center">
+<span class="px-3 py-1 rounded-full text-xs font-bold badge-confirmed uppercase relative overflow-hidden group">
+                                Confirmed
+                                <div class="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full animate-[shimmer_2s_infinite]"></div>
+</span>
+<span class="material-symbols-outlined text-on-surface-variant expand-icon transition-transform">expand_more</span>
+</div>
+</div>
+<div class="order-details">
+<div class="order-details-inner px-6 py-4 border-b border-white/5">
+<div class="bg-surface-container-low p-4 rounded-lg border border-outline-variant mb-4">
+<div class="flex justify-between items-center mb-2">
+<span class="font-tech-label text-tech-label text-on-surface-variant">Fabrication Progress</span>
+<span class="font-tech-label text-tech-label text-secondary">45%</span>
+</div>
+<div class="h-2 w-full bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-gradient-to-r from-secondary to-primary-container w-[45%] relative">
+<div class="absolute inset-0 bg-white/20 animate-pulse"></div>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-4 bg-surface-container-low p-3 rounded-lg border border-outline-variant">
+<div class="w-16 h-16 rounded bg-surface-container-highest flex-shrink-0 relative">
+<img class="w-full h-full object-cover rounded" data-alt="A futuristic robotic arm conceptual design, complex interlocking joints, dark matte finish with glowing orange accent lines, studio lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB-TuaHGemkUJYuB4evSQ_VDNAaFdBu4ypDn9fpEqSO6-2cBC9rlVP_AwUw8vr1yZkDcwdZ9kY2cbt_QiFziBFv4l76BqbGaISzEhnR7ExhEDg7BDftfiJFzRpW2F2Cgfrm7lc2bpRi1V7atAw5_fi3fclvWo7RiWDMNYw5eVx1QNw3ldAE1XfDUNKYze9m_VUoVYhiN2QrnEY54Cw1AS-DxxRVoUddBSHmi0s2K2gn-NCcoZWiWJPt"/>
+</div>
+<div class="flex-grow">
+<p class="font-body-lg text-body-lg text-on-surface font-semibold">Robotic Manipulator Arm</p>
+<p class="font-tech-label text-tech-label text-on-surface-variant">Qty: 1 • Custom Resin Print</p>
+</div>
+<div class="font-price-display text-price-display text-on-surface">$320.50</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Order Row 3 -->
+<div class="order-group">
+<div class="grid grid-cols-12 gap-4 p-4 order-row items-center cursor-pointer font-tech-label text-tech-label" onclick="toggleOrder(this)">
+<div class="col-span-3 text-secondary">#ORD-879-PL</div>
+<div class="col-span-3 text-on-surface">Oct 30, 2024</div>
+<div class="col-span-3 font-price-display text-price-display text-on-surface">$45.00</div>
+<div class="col-span-3 flex justify-between items-center">
+<span class="px-3 py-1 rounded-full text-xs font-bold badge-pending uppercase">Pending</span>
+<span class="material-symbols-outlined text-on-surface-variant expand-icon transition-transform">expand_more</span>
+</div>
+</div>
+<div class="order-details">
+<div class="order-details-inner px-6 py-4 border-b border-white/5">
+<p class="text-on-surface-variant font-body-md text-body-md">Awaiting payment confirmation before fabrication begins.</p>
+</div>
+</div>
+</div>
+<!-- Order Row 4 -->
+<div class="order-group">
+<div class="grid grid-cols-12 gap-4 p-4 order-row items-center cursor-pointer font-tech-label text-tech-label" onclick="toggleOrder(this)">
+<div class="col-span-3 text-secondary">#ORD-750-XX</div>
+<div class="col-span-3 text-on-surface">Sep 15, 2024</div>
+<div class="col-span-3 font-price-display text-price-display text-on-surface">$12.99</div>
+<div class="col-span-3 flex justify-between items-center">
+<span class="px-3 py-1 rounded-full text-xs font-bold badge-rejected uppercase">Rejected</span>
+<span class="material-symbols-outlined text-on-surface-variant expand-icon transition-transform">expand_more</span>
+</div>
+</div>
+<div class="order-details">
+<div class="order-details-inner px-6 py-4 border-b border-white/5 bg-error-container/10">
+<p class="text-error font-body-md text-body-md flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">error</span>
+                                File validation failed. The submitted STL file contains non-manifold edges.
+                            </p>
+</div>
+</div>
+</div>
+</div>
+<!-- Pagination (Implicit) -->
+<div class="mt-6 flex justify-between items-center text-on-surface-variant font-tech-label text-tech-label">
+<span>Showing 1-4 of 24 orders</span>
+<div class="flex gap-2">
+<button class="p-2 rounded hover:bg-surface-container-high transition-colors"><span class="material-symbols-outlined">chevron_left</span></button>
+<button class="p-2 rounded hover:bg-surface-container-high transition-colors"><span class="material-symbols-outlined">chevron_right</span></button>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="w-full py-stack-lg px-margin-desktop grid grid-cols-1 md:grid-cols-4 gap-gutter bg-surface-container-lowest border-t border-outline-variant mt-auto relative z-10">
+<div class="col-span-1 md:col-span-4 mb-8">
+<span class="font-display-lg text-display-lg text-on-surface">3D DZ</span>
+</div>
+<div class="col-span-1 md:col-span-3 flex flex-wrap gap-x-8 gap-y-4">
+<a class="text-on-surface-variant hover:text-secondary-container transition-colors underline-offset-4 hover:underline font-body-md text-body-md" href="#">Terms of Service</a>
+<a class="text-on-surface-variant hover:text-secondary-container transition-colors underline-offset-4 hover:underline font-body-md text-body-md" href="#">Privacy Policy</a>
+<a class="text-on-surface-variant hover:text-secondary-container transition-colors underline-offset-4 hover:underline font-body-md text-body-md" href="#">Licensing</a>
+<a class="text-on-surface-variant hover:text-secondary-container transition-colors underline-offset-4 hover:underline font-body-md text-body-md" href="#">Support</a>
+<a class="text-on-surface-variant hover:text-secondary-container transition-colors underline-offset-4 hover:underline font-body-md text-body-md" href="#">API Documentation</a>
+</div>
+<div class="col-span-1 md:col-span-1 text-left md:text-right">
+<p class="font-body-md text-body-md text-on-surface-variant">© 2024 3D DZ. Manufacturing the future.</p>
+</div>
+</footer>
+<script>
+        function toggleOrder(element) {
+            const details = element.nextElementSibling;
+            const icon = element.querySelector('.expand-icon');
+            
+            if (details.classList.contains('expanded')) {
+                details.classList.remove('expanded');
+                icon.style.transform = 'rotate(0deg)';
+                element.style.backgroundColor = '';
+            } else {
+                // Close others (optional, but good for UX)
+                document.querySelectorAll('.order-details.expanded').forEach(el => {
+                    el.classList.remove('expanded');
+                    el.previousElementSibling.querySelector('.expand-icon').style.transform = 'rotate(0deg)';
+                    el.previousElementSibling.style.backgroundColor = '';
+                });
+                
+                details.classList.add('expanded');
+                icon.style.transform = 'rotate(180deg)';
+                element.style.backgroundColor = 'rgba(255, 106, 61, 0.05)';
+            }
+        }
+    </script>
+</body></html>

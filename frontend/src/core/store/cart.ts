@@ -36,7 +36,7 @@ export const useCartStore = create<CartState>((set, get) => ({
 
   addItem: async (productId, qty = 1) => {
     const token = localStorage.getItem('token');
-    if (!token) { window.location.href = '/auth?mode=login'; return; }
+    if (!token) { window.location.href = `/auth?mode=login&next=${encodeURIComponent(window.location.pathname)}`; return; }
     await api.post('/cart/add', { productId, qty });
     get().fetchCart();
   },

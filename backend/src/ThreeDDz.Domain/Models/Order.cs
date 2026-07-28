@@ -32,6 +32,9 @@ public class OrderNote
 
     [BsonElement("adminId")]
     public string AdminId { get; set; } = string.Empty;
+
+    [BsonElement("status")]
+    public int? Status { get; set; }
 }
 
 public class Order

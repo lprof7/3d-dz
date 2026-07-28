@@ -62,7 +62,7 @@ export default function ProductDetail() {
       if (user) {
         reviewRepo.canReview(d.product.id).then(setCanReview).catch(() => {}).finally(() => setCheckingReview(false));
       } else { setCheckingReview(false); }
-    }).finally(() => { if (!data) setCheckingReview(false); });
+    }).catch(() => {}).finally(() => { setLoading(false); setCheckingReview(false); });
   }, [slug]);
 
   // US-A3 alt flow: unauthenticated user clicking favorite => prompt to login
@@ -277,8 +277,9 @@ export default function ProductDetail() {
                       <span
                         key={i}
                         className={`material-symbols-outlined text-sm ${i < r.rating ? 'text-primary' : 'text-outline-variant'}`}
+                        style={i < r.rating ? { fontVariationSettings: "'FILL' 1" } : undefined}
                       >
-                        {i < r.rating ? 'star' : 'star_border'}
+                        star
                       </span>
                     ))}
                   </div>

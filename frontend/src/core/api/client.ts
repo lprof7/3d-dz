@@ -11,7 +11,7 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (r) => r,
   (err) => {
-    if (err.response?.status === 401) {
+    if (err.response?.status === 401 && !err.config?.url?.startsWith('/auth/login') && !err.config?.url?.startsWith('/auth/register') && !err.config?.url?.startsWith('/auth/me')) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       const next = encodeURIComponent(window.location.pathname + window.location.search);

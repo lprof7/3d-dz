@@ -5,10 +5,12 @@ import { orderRepo, wilayaRepo } from '../../../data/repos/orderRepo';
 import api from '../../../core/api/client';
 import { useCartStore } from '../../../core/store/cart';
 import { useAuthStore } from '../../../core/auth/store';
+import { localized } from '../../../core/i18n/localized';
 import type { Wilaya } from '../../../data/types';
 
 export default function Checkout() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const lang = i18n.language;
   const navigate = useNavigate();
   const { user } = useAuthStore();
   const { items, total, fetchCart, clearCart } = useCartStore();
@@ -62,7 +64,7 @@ export default function Checkout() {
         email: form.email,
         phone: form.phone,
         wilayaCode: wilaya?.code || 0,
-        wilayaName: wilaya?.name || form.wilayaName
+        wilayaName: wilaya ? localized(wilaya.name, lang) : form.wilayaName
       });
       clearCart();
       setDone({ reference: order.reference });
@@ -104,12 +106,12 @@ export default function Checkout() {
             <label className="block text-body-sm text-outline mb-1">{t('checkout.wilaya')}</label>
             <select required value={form.wilayaId} onChange={e => {
               const w = wilayas.find(w => w.id === e.target.value);
-              setForm(f => ({ ...f, wilayaId: e.target.value, wilayaName: w?.name || '' }));
+              setForm(f => ({ ...f, wilayaId: e.target.value, wilayaName: w ? localized(w.name, lang) : '' }));
             }}
               className="w-full bg-surface-container text-on-surface border border-outline-variant rounded px-4 py-3"
             >
               <option value="">{t('checkout.selectWilaya')}</option>
-              {wilayas.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
+              {wilayas.map(w => <option key={w.id} value={w.id}>{localized(w.name, lang)}</option>)}
             </select>
           </div>
           <button type="submit" disabled={submitting || items.length === 0 || !!availError}

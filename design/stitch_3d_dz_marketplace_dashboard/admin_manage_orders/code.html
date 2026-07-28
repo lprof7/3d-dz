@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>3D DZ Admin - Orders Management</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&amp;family=Sora:wght@400;600;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary-fixed-variant": "#862200",
+                        "on-primary": "#5f1500",
+                        "surface-bright": "#37393f",
+                        "primary-container": "#ff6a3d",
+                        "surface-variant": "#33353a",
+                        "on-tertiary-fixed": "#151b2a",
+                        "on-secondary-fixed-variant": "#004e5a",
+                        "surface-container-low": "#1a1b21",
+                        "error-container": "#93000a",
+                        "on-primary-fixed": "#3b0a00",
+                        "secondary-fixed-dim": "#2fd9f4",
+                        "secondary-fixed": "#a2eeff",
+                        "on-background": "#e2e2e9",
+                        "surface": "#111318",
+                        "tertiary-fixed-dim": "#c0c6da",
+                        "on-error-container": "#ffdad6",
+                        "primary": "#ffb59f",
+                        "secondary": "#5de6ff",
+                        "on-secondary": "#00363e",
+                        "on-error": "#690005",
+                        "primary-fixed": "#ffdbd1",
+                        "on-tertiary": "#2a3040",
+                        "tertiary-fixed": "#dce2f7",
+                        "surface-container-lowest": "#0c0e13",
+                        "on-surface": "#e2e2e9",
+                        "surface-container": "#1e1f25",
+                        "secondary-container": "#00cbe6",
+                        "surface-container-high": "#282a2f",
+                        "primary-fixed-dim": "#ffb59f",
+                        "inverse-surface": "#e2e2e9",
+                        "tertiary-container": "#9399ac",
+                        "on-tertiary-fixed-variant": "#404757",
+                        "on-secondary-container": "#00515d",
+                        "outline": "#a98a81",
+                        "surface-dim": "#111318",
+                        "surface-tint": "#ffb59f",
+                        "tertiary": "#c0c6da",
+                        "inverse-on-surface": "#2e3036",
+                        "error": "#ffb4ab",
+                        "on-tertiary-container": "#2b3141",
+                        "on-secondary-fixed": "#001f25",
+                        "inverse-primary": "#ae3104",
+                        "surface-container-highest": "#33353a",
+                        "on-surface-variant": "#e1bfb6",
+                        "outline-variant": "#59413a",
+                        "on-primary-container": "#611600",
+                        "background": "#111318"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-desktop": "40px",
+                        "stack-sm": "12px",
+                        "container-max": "1440px",
+                        "gutter": "24px",
+                        "stack-md": "24px",
+                        "margin-mobile": "16px",
+                        "base": "8px",
+                        "stack-lg": "48px"
+                    },
+                    "fontFamily": {
+                        "display-lg": ["Sora"],
+                        "tech-label": ["JetBrains Mono"],
+                        "body-md": ["Sora"],
+                        "headline-md": ["Sora"],
+                        "display-lg-mobile": ["Sora"],
+                        "body-lg": ["Sora"],
+                        "price-display": ["JetBrains Mono"]
+                    },
+                    "fontSize": {
+                        "display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "800" }],
+                        "tech-label": ["14px", { "lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "500" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "display-lg-mobile": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "800" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "price-display": ["20px", { "lineHeight": "24px", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: #0D0F14; /* Level 0 Base */
+            color: #e2e2e9;
+        }
+        .glass-panel {
+            background-color: #1A1D27;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .glass-panel:hover {
+            box-shadow: 0 0 20px rgba(255, 106, 61, 0.15); /* Primary glow */
+            border-color: rgba(255, 106, 61, 0.3);
+        }
+        .glass-modal {
+            background-color: rgba(26, 29, 39, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .ambient-glow-primary {
+            box-shadow: 0 0 40px -10px rgba(255, 106, 61, 0.4);
+        }
+        .table-row-hover:hover {
+            background-color: rgba(255, 255, 255, 0.03);
+        }
+        .status-badge-pending {
+            background-color: rgba(255, 181, 159, 0.1); /* Primary */
+            color: #ffb59f;
+            border: 1px solid rgba(255, 181, 159, 0.2);
+        }
+        .status-badge-processing {
+            background-color: rgba(93, 230, 255, 0.1); /* Secondary */
+            color: #5de6ff;
+            border: 1px solid rgba(93, 230, 255, 0.2);
+        }
+        .status-badge-shipped {
+            background-color: rgba(162, 238, 255, 0.1); /* Secondary fixed */
+            color: #a2eeff;
+            border: 1px solid rgba(162, 238, 255, 0.2);
+        }
+        .status-badge-delivered {
+            background-color: rgba(220, 226, 247, 0.1); /* Tertiary */
+            color: #dce2f7;
+            border: 1px solid rgba(220, 226, 247, 0.2);
+        }
+        /* Custom scrollbar for drawer */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #111318;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #33353a;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #59413a;
+        }
+    </style>
+</head>
+<body class="font-body-md text-body-md bg-background antialiased h-screen overflow-hidden flex selection:bg-primary-container selection:text-on-primary-container">
+<!-- SideNavBar (from JSON) -->
+<nav class="bg-surface-container-low h-screen w-64 flex-shrink-0 flex flex-col border-r border-outline-variant py-8 shadow-lg shadow-primary/5 hidden md:flex">
+<!-- Header -->
+<div class="px-6 mb-8">
+<div class="flex items-center gap-3 mb-6">
+<div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center overflow-hidden border border-primary/30">
+<img class="w-full h-full object-cover" data-alt="A stylized 3D avatar of a futuristic robot administrator. The avatar is rendered in a high-tech, slightly glowing style with neon orange accents against a dark background, representing an advanced AI overseeing a digital fabrication marketplace." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBmu20WG7XuEDvat3OQP-ftNxBX7eTBmKYJZ2d0CCAAmidCabFKHRWMRtXddpAe2wIMNOWDlKoxjg-bprphBbnY_IXzPu24jEL3yyJuKVdFN0wXuZA1MPue2Q-3imItOxXUCc89T5fYnEZySPNyrUj5vMyL5f0-k_2Bi83UytuHRxL6Fg5MiNmSoxaBwEEqClbvxssAOtLR5mwma-wE3JQZFBFElTnCIxYamBgM-nv2Z-gFa5RSmqP2"/>
+</div>
+<div>
+<h1 class="font-headline-md text-headline-md text-primary leading-tight">Admin Panel</h1>
+<p class="font-tech-label text-tech-label text-on-surface-variant text-[10px]">DZ Control Center</p>
+</div>
+</div>
+<button class="w-full py-2 px-4 bg-primary-container text-white font-tech-label text-tech-label rounded shadow-[0_4px_14px_0_rgba(255,106,61,0.39)] hover:shadow-[0_6px_20px_rgba(255,106,61,0.23)] hover:bg-primary-container/90 transition-all duration-300 flex items-center justify-center gap-2">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">add</span>
+                New Listing
+            </button>
+</div>
+<!-- Main Navigation -->
+<div class="flex-1 flex flex-col gap-1 px-4">
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-all cursor-pointer font-tech-label text-tech-label" href="#">
+<span class="material-symbols-outlined">insights</span>
+                Analytics
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-all cursor-pointer font-tech-label text-tech-label" href="#">
+<span class="material-symbols-outlined">inventory_2</span>
+                Products
+            </a>
+<!-- Active Tab -->
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg bg-primary-container/20 text-primary border-r-4 border-primary font-tech-label text-tech-label" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">shopping_bag</span>
+                Orders
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-all cursor-pointer font-tech-label text-tech-label" href="#">
+<span class="material-symbols-outlined">group</span>
+                Customers
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-all cursor-pointer font-tech-label text-tech-label" href="#">
+<span class="material-symbols-outlined">rate_review</span>
+                Reviews
+            </a>
+</div>
+<!-- Footer Navigation -->
+<div class="mt-auto px-4 flex flex-col gap-1">
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-all cursor-pointer font-tech-label text-tech-label" href="#">
+<span class="material-symbols-outlined">settings</span>
+                Settings
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-all cursor-pointer font-tech-label text-tech-label" href="#">
+<span class="material-symbols-outlined">help_center</span>
+                Support
+            </a>
+</div>
+</nav>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col h-full overflow-hidden relative">
+<!-- Top Header Area for mobile (if needed, but assuming desktop focus for admin) -->
+<header class="flex md:hidden items-center justify-between p-4 border-b border-white/10 bg-surface/70 backdrop-blur-xl">
+<h1 class="font-headline-md text-headline-md text-primary">Orders</h1>
+<button class="text-on-surface"><span class="material-symbols-outlined">menu</span></button>
+</header>
+<!-- Main Workspace -->
+<div class="flex-1 overflow-y-auto p-6 md:p-margin-desktop flex flex-col gap-stack-md">
+<!-- Page Header & Actions -->
+<div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-4">
+<div>
+<h2 class="font-display-lg text-display-lg-mobile md:text-display-lg text-on-surface mb-2">Orders Management</h2>
+<p class="text-on-surface-variant font-body-lg text-body-lg">Review and process incoming 3D printing requests.</p>
+</div>
+<div class="flex flex-wrap gap-3">
+<button class="px-4 py-2 glass-panel rounded-lg flex items-center gap-2 text-on-surface hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[18px]">download</span>
+<span class="font-tech-label text-tech-label">Export CSV</span>
+</button>
+</div>
+</div>
+<!-- Filters & Search -->
+<div class="glass-panel rounded-xl p-4 flex flex-col lg:flex-row gap-4 items-center justify-between relative z-10">
+<div class="relative w-full lg:w-96">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+<input class="w-full bg-surface border border-outline-variant rounded-lg py-2 pl-10 pr-4 text-on-surface placeholder:text-on-surface-variant focus:border-secondary focus:ring-1 focus:ring-secondary transition-all font-tech-label text-tech-label" placeholder="Search order ID, customer..." type="text"/>
+</div>
+<div class="flex flex-wrap gap-4 w-full lg:w-auto">
+<!-- Status Filter -->
+<div class="relative flex-1 lg:flex-none">
+<select class="w-full lg:w-48 bg-surface border border-outline-variant rounded-lg py-2 px-4 appearance-none text-on-surface focus:border-secondary focus:ring-1 focus:ring-secondary transition-all font-tech-label text-tech-label">
+<option value="">All Statuses</option>
+<option value="pending">Pending</option>
+<option value="processing">Processing</option>
+<option value="shipped">Shipped</option>
+<option value="delivered">Delivered</option>
+</select>
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none">expand_more</span>
+</div>
+<!-- Wilaya Filter -->
+<div class="relative flex-1 lg:flex-none">
+<select class="w-full lg:w-48 bg-surface border border-outline-variant rounded-lg py-2 px-4 appearance-none text-on-surface focus:border-secondary focus:ring-1 focus:ring-secondary transition-all font-tech-label text-tech-label">
+<option value="">All Wilayas</option>
+<option value="16">16 - Alger</option>
+<option value="31">31 - Oran</option>
+<option value="25">25 - Constantine</option>
+<option value="09">09 - Blida</option>
+</select>
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none">expand_more</span>
+</div>
+</div>
+</div>
+<!-- Orders Table Container -->
+<div class="glass-panel rounded-xl overflow-hidden flex-1 flex flex-col relative">
+<!-- Decorative HUD element -->
+<div class="absolute top-0 right-0 w-16 h-16 border-t border-r border-primary/20 pointer-events-none rounded-tr-xl"></div>
+<div class="absolute bottom-0 left-0 w-16 h-16 border-b border-l border-secondary/20 pointer-events-none rounded-bl-xl"></div>
+<div class="overflow-x-auto flex-1">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="border-b border-outline-variant bg-surface-container-high/50 font-tech-label text-tech-label text-on-surface-variant">
+<th class="py-4 px-6 font-medium">Order ID</th>
+<th class="py-4 px-6 font-medium">Customer</th>
+<th class="py-4 px-6 font-medium">Date</th>
+<th class="py-4 px-6 font-medium">Wilaya</th>
+<th class="py-4 px-6 font-medium">Total</th>
+<th class="py-4 px-6 font-medium">Status</th>
+<th class="py-4 px-6 font-medium text-right">Action</th>
+</tr>
+</thead>
+<tbody class="font-body-md text-body-md">
+<!-- Row 1 -->
+<tr class="border-b border-outline-variant/50 table-row-hover cursor-pointer" onclick="toggleDrawer()">
+<td class="py-4 px-6 font-tech-label text-tech-label text-secondary">#ORD-7392</td>
+<td class="py-4 px-6">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-surface border border-outline-variant flex items-center justify-center text-xs font-tech-label">KB</div>
+<span class="text-on-surface">Karim Benali</span>
+</div>
+</td>
+<td class="py-4 px-6 text-on-surface-variant">Oct 24, 2024</td>
+<td class="py-4 px-6 text-on-surface-variant">16 - Alger</td>
+<td class="py-4 px-6 font-price-display text-price-display text-on-surface">14,500 DZD</td>
+<td class="py-4 px-6">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-tech-label status-badge-pending">
+<span class="w-1.5 h-1.5 rounded-full bg-current mr-1.5 animate-pulse"></span>
+                                        Pending
+                                    </span>
+</td>
+<td class="py-4 px-6 text-right">
+<button class="text-on-surface-variant hover:text-primary transition-colors p-1"><span class="material-symbols-outlined">more_vert</span></button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="border-b border-outline-variant/50 table-row-hover cursor-pointer" onclick="toggleDrawer()">
+<td class="py-4 px-6 font-tech-label text-tech-label text-secondary">#ORD-7391</td>
+<td class="py-4 px-6">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-surface border border-outline-variant flex items-center justify-center text-xs font-tech-label">SM</div>
+<span class="text-on-surface">Sara Merzoug</span>
+</div>
+</td>
+<td class="py-4 px-6 text-on-surface-variant">Oct 23, 2024</td>
+<td class="py-4 px-6 text-on-surface-variant">31 - Oran</td>
+<td class="py-4 px-6 font-price-display text-price-display text-on-surface">8,200 DZD</td>
+<td class="py-4 px-6">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-tech-label status-badge-processing">
+<span class="material-symbols-outlined text-[12px] mr-1">model_training</span>
+                                        Processing
+                                    </span>
+</td>
+<td class="py-4 px-6 text-right">
+<button class="text-on-surface-variant hover:text-primary transition-colors p-1"><span class="material-symbols-outlined">more_vert</span></button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="border-b border-outline-variant/50 table-row-hover cursor-pointer" onclick="toggleDrawer()">
+<td class="py-4 px-6 font-tech-label text-tech-label text-secondary">#ORD-7388</td>
+<td class="py-4 px-6">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-surface border border-outline-variant flex items-center justify-center text-xs font-tech-label">YM</div>
+<span class="text-on-surface">Yacine Mansouri</span>
+</div>
+</td>
+<td class="py-4 px-6 text-on-surface-variant">Oct 21, 2024</td>
+<td class="py-4 px-6 text-on-surface-variant">09 - Blida</td>
+<td class="py-4 px-6 font-price-display text-price-display text-on-surface">32,000 DZD</td>
+<td class="py-4 px-6">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-tech-label status-badge-shipped">
+<span class="material-symbols-outlined text-[12px] mr-1">local_shipping</span>
+                                        Shipped
+                                    </span>
+</td>
+<td class="py-4 px-6 text-right">
+<button class="text-on-surface-variant hover:text-primary transition-colors p-1"><span class="material-symbols-outlined">more_vert</span></button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination (Simple) -->
+<div class="p-4 border-t border-outline-variant flex items-center justify-between text-sm text-on-surface-variant font-tech-label">
+<span>Showing 1 to 10 of 45 entries</span>
+<div class="flex gap-2">
+<button class="w-8 h-8 rounded border border-outline-variant flex items-center justify-center hover:border-secondary hover:text-secondary transition-colors"><span class="material-symbols-outlined text-[16px]">chevron_left</span></button>
+<button class="w-8 h-8 rounded bg-primary-container/20 border border-primary text-primary flex items-center justify-center">1</button>
+<button class="w-8 h-8 rounded border border-outline-variant flex items-center justify-center hover:border-secondary hover:text-secondary transition-colors">2</button>
+<button class="w-8 h-8 rounded border border-outline-variant flex items-center justify-center hover:border-secondary hover:text-secondary transition-colors">3</button>
+<button class="w-8 h-8 rounded border border-outline-variant flex items-center justify-center hover:border-secondary hover:text-secondary transition-colors"><span class="material-symbols-outlined text-[16px]">chevron_right</span></button>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Detail Drawer Overlay -->
+<div class="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 hidden transition-opacity" id="drawer-overlay" onclick="toggleDrawer()"></div>
+<!-- Detail Drawer (Slide in from right) -->
+<aside class="fixed top-0 right-0 h-full w-full max-w-md glass-modal z-50 transform translate-x-full transition-transform duration-300 ease-in-out flex flex-col border-l border-white/10 shadow-[-20px_0_40px_rgba(0,0,0,0.5)]" id="detail-drawer">
+<!-- Drawer Header -->
+<div class="p-6 border-b border-outline-variant flex items-center justify-between">
+<div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-1">Order Details</h3>
+<span class="font-tech-label text-tech-label text-secondary">#ORD-7392</span>
+</div>
+<button class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-white hover:bg-surface-container-high transition-colors" onclick="toggleDrawer()">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<!-- Drawer Content (Scrollable) -->
+<div class="flex-1 overflow-y-auto p-6 flex flex-col gap-8">
+<!-- Status Update Section -->
+<section>
+<h4 class="font-tech-label text-tech-label text-on-surface-variant mb-3 flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]">update</span> Status Management
+                </h4>
+<div class="bg-surface-container-low rounded-lg p-4 border border-outline-variant/50">
+<label class="block text-sm text-on-surface mb-2 font-tech-label">Current Status</label>
+<select class="w-full bg-surface border border-outline-variant rounded-lg py-2 px-4 appearance-none text-primary focus:border-primary focus:ring-1 focus:ring-primary transition-all font-tech-label text-tech-label mb-3">
+<option selected="" value="pending">Pending Review</option>
+<option value="processing">Printing (Processing)</option>
+<option value="shipped">Shipped</option>
+<option value="delivered">Delivered</option>
+<option value="cancelled">Cancelled</option>
+</select>
+<!-- Print Progress Bar (Visible if processing) -->
+<div class="mt-4 hidden" id="print-progress">
+<div class="flex justify-between text-xs font-tech-label mb-1 text-secondary">
+<span>Print Progress</span>
+<span>45%</span>
+</div>
+<div class="w-full h-1 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-gradient-to-r from-secondary to-primary w-[45%] shadow-[0_0_10px_#5de6ff]"></div>
+</div>
+</div>
+</div>
+</section>
+<!-- Customer Info -->
+<section>
+<h4 class="font-tech-label text-tech-label text-on-surface-variant mb-3 flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]">person</span> Customer Information
+                </h4>
+<div class="glass-panel rounded-lg p-4">
+<div class="flex items-start gap-4 mb-4">
+<div class="w-12 h-12 rounded bg-surface border border-outline-variant flex items-center justify-center text-lg font-tech-label text-on-surface">KB</div>
+<div>
+<p class="font-bold text-on-surface">Karim Benali</p>
+<p class="text-sm text-on-surface-variant">karim.b@example.dz</p>
+<p class="text-sm text-on-surface-variant">+213 555 12 34 56</p>
+</div>
+</div>
+<div class="pt-4 border-t border-outline-variant/50 text-sm">
+<p class="text-on-surface-variant mb-1">Shipping Address:</p>
+<p class="text-on-surface">14 Rue des Frères, Bab Ezzouar</p>
+<p class="text-on-surface">16 - Alger, Algeria</p>
+</div>
+</div>
+</section>
+<!-- Products List -->
+<section>
+<h4 class="font-tech-label text-tech-label text-on-surface-variant mb-3 flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]">inventory_2</span> Order Items
+                </h4>
+<div class="flex flex-col gap-3">
+<!-- Item 1 -->
+<div class="glass-panel rounded-lg p-3 flex gap-4 items-center">
+<div class="w-16 h-16 rounded bg-surface-container flex items-center justify-center border border-outline-variant/50 relative overflow-hidden group">
+<!-- Subtle pedestal shadow simulation -->
+<div class="absolute bottom-1 w-10 h-2 bg-black/40 rounded-[100%] blur-[2px]"></div>
+<img class="w-12 h-12 object-contain relative z-10 transition-transform group-hover:scale-110" data-alt="A small 3D printed mechanical gear component rendered in sleek dark grey filament. The object sits on a subtle circular pedestal shadow, dramatically lit to highlight the layer lines and precision of the 3D print." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBfivTRjFWKm6rzOi_eH3Qp-zT6yeKWdAKGWmyj8ttNJxTH6_NLJHmA8UECYQKyp3CXAJepi0RR3BCsfYC-Wx926bjJgwUbPTvdoYn9nFQ5QGnKc38yuIWWiiYc5uM9n1CkhnHgYK0gGm9xgMWvF0BR6QArAbbntRKc7xwAZ5UWVqgCMwcG4w1LW4gzWRW3KphWzavs00wJLRHBIdQT7OUOlAwEUs7RqhOjqYQn5zjeeVWDJjz84nHS"/>
+</div>
+<div class="flex-1">
+<p class="text-sm font-bold text-on-surface line-clamp-1">Custom Mechanical Gear V2</p>
+<div class="flex gap-2 mt-1">
+<span class="bg-[#151b2a] text-[#5de6ff] text-[10px] px-1.5 py-0.5 rounded font-tech-label border border-[#004e5a]">PETG</span>
+<span class="bg-[#151b2a] text-[#5de6ff] text-[10px] px-1.5 py-0.5 rounded font-tech-label border border-[#004e5a]">Black</span>
+</div>
+</div>
+<div class="text-right">
+<p class="text-sm text-on-surface">x2</p>
+<p class="font-price-display text-sm text-secondary mt-1">8,500 DZD</p>
+</div>
+</div>
+<!-- Item 2 -->
+<div class="glass-panel rounded-lg p-3 flex gap-4 items-center">
+<div class="w-16 h-16 rounded bg-surface-container flex items-center justify-center border border-outline-variant/50 relative overflow-hidden group">
+<div class="absolute bottom-1 w-10 h-2 bg-black/40 rounded-[100%] blur-[2px]"></div>
+<img class="w-12 h-12 object-contain relative z-10 transition-transform group-hover:scale-110" data-alt="A futuristic minimalist architectural model, 3D printed in matte white filament. The object is shown against a dark tech background with high contrast lighting emphasizing the geometric shapes." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAj4r16YqkXZngHMj7IRfV5lyOKZPEvQcy4DMeuY3X4uB37_ji0U2Tr-eLQiDtoJjWhAhJ0Diwz1QQAFL0LKzrp5IAyxYFbEfmYKQxtU6-fi1dfxwJC2MwmLl1QR4ql6Wd-YFeiM5LwvR9DIFiCRLpLgzpCXaG4QFODR9s0rzqvWwmtC4DYvwiNGVu6H37LQHg9iCYqejskt5SqXQL1oYrB_rUnXISECsudE2ysSzedI4aX3wc8minr"/>
+</div>
+<div class="flex-1">
+<p class="text-sm font-bold text-on-surface line-clamp-1">Architectural Mini Model</p>
+<div class="flex gap-2 mt-1">
+<span class="bg-[#151b2a] text-[#5de6ff] text-[10px] px-1.5 py-0.5 rounded font-tech-label border border-[#004e5a]">PLA</span>
+<span class="bg-[#151b2a] text-[#5de6ff] text-[10px] px-1.5 py-0.5 rounded font-tech-label border border-[#004e5a]">White</span>
+</div>
+</div>
+<div class="text-right">
+<p class="text-sm text-on-surface">x1</p>
+<p class="font-price-display text-sm text-secondary mt-1">6,000 DZD</p>
+</div>
+</div>
+</div>
+<!-- Total -->
+<div class="mt-4 pt-4 border-t border-outline-variant flex justify-between items-center">
+<span class="text-on-surface-variant font-tech-label">Total Amount</span>
+<span class="font-price-display text-xl text-primary font-bold">14,500 DZD</span>
+</div>
+</section>
+<!-- Internal Notes -->
+<section>
+<h4 class="font-tech-label text-tech-label text-on-surface-variant mb-3 flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]">notes</span> Internal Notes
+                </h4>
+<textarea class="w-full bg-surface border border-outline-variant rounded-lg p-3 text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:border-secondary focus:ring-1 focus:ring-secondary transition-all min-h-[100px] resize-y" placeholder="Add private notes for production team..."></textarea>
+</section>
+</div>
+<!-- Drawer Footer Actions -->
+<div class="p-6 border-t border-outline-variant bg-surface-container-low flex gap-3">
+<button class="flex-1 py-2 px-4 rounded-lg border border-secondary text-secondary font-tech-label hover:bg-secondary/10 transition-colors" onclick="toggleDrawer()">Cancel</button>
+<button class="flex-1 py-2 px-4 rounded-lg bg-primary-container text-white font-tech-label shadow-[0_4px_14px_0_rgba(255,106,61,0.39)] hover:shadow-[0_6px_20px_rgba(255,106,61,0.23)] hover:bg-primary-container/90 transition-all">Save Changes</button>
+</div>
+</aside>
+<script>
+        function toggleDrawer() {
+            const drawer = document.getElementById('detail-drawer');
+            const overlay = document.getElementById('drawer-overlay');
+            
+            if (drawer.classList.contains('translate-x-full')) {
+                // Open
+                drawer.classList.remove('translate-x-full');
+                overlay.classList.remove('hidden');
+                setTimeout(() => { overlay.classList.add('opacity-100'); }, 10);
+            } else {
+                // Close
+                drawer.classList.add('translate-x-full');
+                overlay.classList.remove('opacity-100');
+                setTimeout(() => { overlay.classList.add('hidden'); }, 300);
+            }
+        }
+    </script>
+</body></html>

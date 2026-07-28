@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>3D DZ - Product Details</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;800&amp;family=JetBrains+Mono:wght@500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary-fixed-variant": "#862200",
+                        "on-primary": "#5f1500",
+                        "surface-bright": "#37393f",
+                        "primary-container": "#ff6a3d",
+                        "surface-variant": "#33353a",
+                        "on-tertiary-fixed": "#151b2a",
+                        "on-secondary-fixed-variant": "#004e5a",
+                        "surface-container-low": "#1a1b21",
+                        "error-container": "#93000a",
+                        "on-primary-fixed": "#3b0a00",
+                        "secondary-fixed-dim": "#2fd9f4",
+                        "secondary-fixed": "#a2eeff",
+                        "on-background": "#e2e2e9",
+                        "surface": "#111318",
+                        "tertiary-fixed-dim": "#c0c6da",
+                        "on-error-container": "#ffdad6",
+                        "primary": "#ffb59f",
+                        "secondary": "#5de6ff",
+                        "on-secondary": "#00363e",
+                        "on-error": "#690005",
+                        "primary-fixed": "#ffdbd1",
+                        "on-tertiary": "#2a3040",
+                        "tertiary-fixed": "#dce2f7",
+                        "surface-container-lowest": "#0c0e13",
+                        "on-surface": "#e2e2e9",
+                        "surface-container": "#1e1f25",
+                        "secondary-container": "#00cbe6",
+                        "surface-container-high": "#282a2f",
+                        "primary-fixed-dim": "#ffb59f",
+                        "inverse-surface": "#e2e2e9",
+                        "tertiary-container": "#9399ac",
+                        "on-tertiary-fixed-variant": "#404757",
+                        "on-secondary-container": "#00515d",
+                        "outline": "#a98a81",
+                        "surface-dim": "#111318",
+                        "surface-tint": "#ffb59f",
+                        "tertiary": "#c0c6da",
+                        "inverse-on-surface": "#2e3036",
+                        "error": "#ffb4ab",
+                        "on-tertiary-container": "#2b3141",
+                        "on-secondary-fixed": "#001f25",
+                        "inverse-primary": "#ae3104",
+                        "surface-container-highest": "#33353a",
+                        "on-surface-variant": "#e1bfb6",
+                        "outline-variant": "#59413a",
+                        "on-primary-container": "#611600",
+                        "background": "#111318"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-desktop": "40px",
+                        "stack-sm": "12px",
+                        "container-max": "1440px",
+                        "gutter": "24px",
+                        "stack-md": "24px",
+                        "margin-mobile": "16px",
+                        "base": "8px",
+                        "stack-lg": "48px"
+                    },
+                    "fontFamily": {
+                        "display-lg": ["Sora"],
+                        "tech-label": ["JetBrains Mono"],
+                        "body-md": ["Sora"],
+                        "headline-md": ["Sora"],
+                        "display-lg-mobile": ["Sora"],
+                        "body-lg": ["Sora"],
+                        "price-display": ["JetBrains Mono"]
+                    },
+                    "fontSize": {
+                        "display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "800" }],
+                        "tech-label": ["14px", { "lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "500" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "display-lg-mobile": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "800" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "price-display": ["20px", { "lineHeight": "24px", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: #0D0F14;
+            color: #e2e2e9;
+        }
+        .glass-panel {
+            background: rgba(26, 29, 39, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .ambient-glow {
+            box-shadow: 0 0 40px -15px rgba(255, 106, 61, 0.3);
+        }
+        .btn-primary {
+            background: linear-gradient(180deg, rgba(255,106,61,1) 0%, rgba(220,70,25,1) 100%);
+            color: #ffffff;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.2), 0 4px 12px rgba(255,106,61,0.3);
+        }
+        .btn-secondary {
+            background: transparent;
+            border: 1px solid #5de6ff;
+            color: #5de6ff;
+            transition: all 0.3s ease;
+        }
+        .btn-secondary:hover {
+            background: rgba(93, 230, 255, 0.1);
+            box-shadow: 0 0 15px rgba(93, 230, 255, 0.2);
+        }
+        .pedestal-shadow {
+            background: radial-gradient(ellipse at center, rgba(255,106,61,0.15) 0%, rgba(0,0,0,0) 70%);
+        }
+    </style>
+</head>
+<body class="font-body-md text-body-md bg-background text-on-surface antialiased min-h-screen flex flex-col pt-24">
+<!-- TopNavBar -->
+<nav class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-margin-desktop py-4 bg-surface/70 backdrop-blur-xl border-b border-white/10 shadow-[0_0_40px_-15px_rgba(255,106,61,0.3)]">
+<div class="flex items-center gap-gutter">
+<a class="font-display-lg text-display-lg font-black text-primary tracking-tighter" href="#">3D DZ</a>
+<div class="hidden md:flex items-center gap-stack-md ml-stack-lg">
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors duration-300" href="#">Categories</a>
+<a class="font-body-md text-body-md text-primary border-b-2 border-primary pb-1 active:scale-95 transition-transform" href="#">Explore</a>
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors duration-300" href="#">Newest</a>
+</div>
+</div>
+<div class="flex items-center gap-stack-sm">
+<button class="p-2 text-on-surface-variant hover:text-primary transition-colors duration-300 active:scale-95">
+<span class="material-symbols-outlined">favorite</span>
+</button>
+<button class="p-2 text-on-surface-variant hover:text-primary transition-colors duration-300 active:scale-95">
+<span class="material-symbols-outlined">shopping_cart</span>
+</button>
+<div class="hidden md:flex items-center gap-stack-sm ml-stack-sm">
+<button class="font-tech-label text-tech-label px-4 py-2 rounded border border-white/10 text-on-surface hover:text-primary transition-colors duration-300 active:scale-95">Login</button>
+<button class="font-tech-label text-tech-label px-4 py-2 rounded btn-primary active:scale-95">Register</button>
+</div>
+</div>
+</nav>
+<main class="flex-grow w-full max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-stack-lg">
+<!-- Product Hero Section -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter mb-stack-lg">
+<!-- Gallery -->
+<div class="lg:col-span-7 flex flex-col gap-stack-sm">
+<div class="relative w-full aspect-square md:aspect-[4/3] glass-panel rounded-xl overflow-hidden group">
+<div class="absolute inset-0 pedestal-shadow opacity-50 mix-blend-screen pointer-events-none z-10 top-auto h-1/3 bottom-0"></div>
+<img class="w-full h-full object-cover relative z-0 transition-transform duration-700 group-hover:scale-105" data-alt="High-resolution, photorealistic render of a complex, futuristic mechanical engine part designed for 3D printing. The model is displayed in a sleek, dark studio environment with dramatic top-down rim lighting that highlights its intricate gears, sleek surfaces, and metallic textures. Glowing cyan accents suggest active energy cores. The aesthetic is ultra-modern, industrial, and high-performance, evoking advanced digital fabrication and cyberpunk engineering." src="https://lh3.googleusercontent.com/aida-public/AB6AXuADLxzdEnbP_VZrG4wqHwJjzXfodDDvst6eCHSfK_33-hr2Ygi_QHQb9HVYq5m_9p3GVV3X77SaKwmWmAyhM56aVrYdFlGOfqRrYQy_vkwcu5x2tfLnvRkqddT7tSq0CizplE_Gc4D4t20R6oUiWgxLpG4ReQp-QJlu__IqJCl49_4wZlqcxepnZMf54hT4EH64eLnEIFL6izEI__epI3fjisCx9PbcTMxpY1vcArXeT44AyXwuYg-O"/>
+<!-- HUD Elements -->
+<div class="absolute top-4 left-4 w-4 h-4 border-t border-l border-primary/50 pointer-events-none z-20"></div>
+<div class="absolute top-4 right-4 w-4 h-4 border-t border-r border-primary/50 pointer-events-none z-20"></div>
+<div class="absolute bottom-4 left-4 w-4 h-4 border-b border-l border-primary/50 pointer-events-none z-20"></div>
+<div class="absolute bottom-4 right-4 w-4 h-4 border-b border-r border-primary/50 pointer-events-none z-20"></div>
+</div>
+<div class="grid grid-cols-4 gap-stack-sm">
+<div class="aspect-square glass-panel rounded-lg overflow-hidden cursor-pointer border-primary">
+<img class="w-full h-full object-cover" data-alt="Close-up detail shot of a complex 3D printed mechanical joint, showing interlocking gears and smooth futuristic surfaces. Dark studio lighting with intense orange rim light highlighting the intricate modeling. High-tech, premium aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCCHJTzF8kgda1g4VLylEnH4HasVYtKtXpb0o4fkuarhrnNz8u20T9wZb1parWE1QHVSYM91fBsiJhs7LFEwTbrLTdvKa01DyiUQrToQbXA1Aiyg6dd8pN2WmmebM9Hyqo493f-7B36SAv6IIUYkBw5wAMrZ24sAGd9cNoGlpOelJ1xi76kQvObEXhLFz3vZ5f8QAh1yY3uXq1aeJ21vOfOv4rqIiJBo2YvGiruoouZiRlvE83Eth3k"/>
+</div>
+<div class="aspect-square glass-panel rounded-lg overflow-hidden cursor-pointer hover:border-primary/50 transition-colors">
+<img class="w-full h-full object-cover" data-alt="Wireframe rendering of a futuristic mechanical engine part, displaying complex polygon meshes against a deep black background. The wireframe lines glow with a subtle cyan hue, emphasizing the precision and technical complexity of the 3D model." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDF95ErBZPP4g2C3Q3UUq04FRw4NywT1rBmgxC7o4mU8F4YoZMArCndoExqoyjqJ821tkrB1yhio8wQWfZubtOWcfTW2DAVa6b6ozecJlOC5etITy9s7N4WsOyJJWFSde-XotjZXzkweI0tY3A8J4QrhAmwJsbTq16nlu0dKeDcM6rLPe_6vl_CooTFfpDKfCnhgowDSYtKKLUSwQ99-dtksOZ5haC68lepnNOjw7wiDK6Kbbs0QDrP"/>
+</div>
+<div class="aspect-square glass-panel rounded-lg overflow-hidden cursor-pointer hover:border-primary/50 transition-colors">
+<img class="w-full h-full object-cover" data-alt="Another angle of a highly detailed 3D printed mechanical assembly, shown in a dark, moody environment. The sleek metallic finish catches dramatic lighting, while subtle orange glowing elements suggest internal energy. Premium digital fabrication style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBDi9pwjlkv5m22s5ZAqU5y8UdhN4Znq4WvKZ4YCOTObtY0nAiNHkPwumPzX2kyspxvP8HGdkz4N5PXFt_UpR2ihV9Qf_Y6zwIsaU7yQkAdMzRhmxkH98tTz51RfQMh97QRLv4_4Ux6cJX-RCGkQt1AtNaBEd73b8erXGu1KGElOfRE1P3rVCxRGqAT4_ctoGlx059Dv_43svi4MtCM0A8m9hQiSYjGF1bHvuajBk5DCbADsMfWuTd1"/>
+</div>
+<div class="aspect-square glass-panel rounded-lg overflow-hidden cursor-pointer hover:border-primary/50 transition-colors flex items-center justify-center bg-surface-container-low">
+<span class="material-symbols-outlined text-on-surface-variant text-3xl">play_circle</span>
+</div>
+</div>
+</div>
+<!-- Info Section -->
+<div class="lg:col-span-5 flex flex-col pt-4 lg:pl-stack-md">
+<div class="flex gap-2 mb-4">
+<span class="font-tech-label text-tech-label px-2 py-1 bg-surface-container-high text-secondary rounded">STL</span>
+<span class="font-tech-label text-tech-label px-2 py-1 bg-surface-container-high text-on-surface-variant rounded">OBJ</span>
+<span class="font-tech-label text-tech-label px-2 py-1 bg-surface-container-high text-on-surface-variant rounded">145MB</span>
+</div>
+<h1 class="font-display-lg text-display-lg-mobile md:text-display-lg text-on-surface mb-2">Quantum Drive Core V2</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant mb-6">High-performance mechanical assembly designed for SLA and high-resolution FDM printing. Features interlocking articulated joints.</p>
+<div class="flex items-baseline gap-4 mb-8">
+<span class="font-price-display text-price-display text-primary text-3xl">$45.00</span>
+<span class="font-tech-label text-tech-label text-on-surface-variant line-through">Standard License</span>
+</div>
+<div class="flex flex-col gap-4 mb-stack-lg">
+<button class="w-full py-4 rounded-lg btn-primary font-headline-md text-headline-md flex items-center justify-center gap-2">
+<span class="material-symbols-outlined">shopping_cart</span>
+                        Add to Cart
+                    </button>
+<button class="w-full py-4 rounded-lg btn-secondary font-tech-label text-tech-label flex items-center justify-center gap-2 uppercase tracking-widest">
+<span class="material-symbols-outlined">favorite</span>
+                        Add to Favorites
+                    </button>
+</div>
+<!-- Tabs -->
+<div class="border-b border-white/10 mb-6 flex gap-8">
+<button class="font-body-md text-body-md text-primary border-b-2 border-primary pb-2">Description</button>
+<button class="font-body-md text-body-md text-on-surface-variant hover:text-on-surface pb-2 transition-colors">Technical Specs</button>
+<button class="font-body-md text-body-md text-on-surface-variant hover:text-on-surface pb-2 transition-colors">Reviews (12)</button>
+</div>
+<div class="prose prose-invert max-w-none text-on-surface-variant">
+<p>The Quantum Drive Core V2 is an intricate, multi-part assembly engineered for enthusiasts seeking a challenging and rewarding print. Optimized for minimal supports on FDM printers and pre-hollowed for SLA.</p>
+<ul class="list-disc pl-5 mt-4 space-y-2">
+<li>Print without supports (orientation specific)</li>
+<li>Tolerances optimized for 0.4mm nozzles</li>
+<li>Includes pre-supported files for resin</li>
+</ul>
+</div>
+</div>
+</div>
+<!-- Related Products -->
+<section class="mt-stack-lg">
+<h2 class="font-headline-md text-headline-md text-on-surface mb-stack-md border-l-4 border-primary pl-4">Similar Assets</h2>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-gutter">
+<!-- Card 1 -->
+<div class="glass-panel rounded-xl overflow-hidden group hover:ambient-glow transition-shadow duration-500 flex flex-col p-4 pb-8 relative">
+<div class="absolute inset-0 border border-white/5 group-hover:border-primary/30 rounded-xl transition-colors pointer-events-none z-20"></div>
+<div class="w-full aspect-square rounded-lg overflow-hidden bg-surface-container relative mb-4">
+<div class="absolute inset-0 pedestal-shadow opacity-50 mix-blend-screen pointer-events-none z-10 bottom-0 h-1/2 top-auto"></div>
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="A small, futuristic 3D printed mechanical thruster nozzle rendered in dark studio lighting. Smooth curves, tech-inspired panel lines, glowing orange accent lights. Premium aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCgUWVuBOmr7w2uPltNmbu7SwqjB_Flc8Bi9Z1K9Y1ax8-IL92t5aG5M_VOxsVGvh-wi5II9STVBvrzrIx4q-1njUPsTSrce-P0sudSz4PBzOKnQNYGKsbBgLxsdCMYT4uAr_hTDFDl5RQtKUzZXuKy3F8zEZvR5U8W4k3zcwaSxMed0NtRNCwXp5TZR7WBYo24XkoKdo3w6f9nItvyufDCycFeZA5CQamEk9XH-Xfw-OqDnSKbhsiS"/>
+</div>
+<div class="flex justify-between items-start mt-auto">
+<div>
+<h3 class="font-body-md text-body-md font-semibold text-on-surface group-hover:text-primary transition-colors">Ion Thruster Nozzle</h3>
+<span class="font-tech-label text-tech-label text-on-surface-variant">STL / OBJ</span>
+</div>
+<span class="font-price-display text-price-display text-secondary">$12</span>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="glass-panel rounded-xl overflow-hidden group hover:ambient-glow transition-shadow duration-500 flex flex-col p-4 pb-8 relative">
+<div class="absolute inset-0 border border-white/5 group-hover:border-primary/30 rounded-xl transition-colors pointer-events-none z-20"></div>
+<div class="w-full aspect-square rounded-lg overflow-hidden bg-surface-container relative mb-4">
+<div class="absolute inset-0 pedestal-shadow opacity-50 mix-blend-screen pointer-events-none z-10 bottom-0 h-1/2 top-auto"></div>
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="Detailed 3D render of a futuristic cybernetic arm joint designed for 3D printing. Exposed pistons and sleek carbon-fiber textures, illuminated by dramatic cyan and orange studio rim lights." src="https://lh3.googleusercontent.com/aida-public/AB6AXuACGqCn6y_-oMbGEUK9Ax0EG1I7AorWi2h1xlJEYHkHxWw2a73JgzWZKidroEk_jLTxG322g3EdSNBIALLtqBTmKR6idYdhlHgbgXJRHKTf6NmF-UlFjHWKULX8VsDy5Lzfdjhi0lNEvpbWb6C5HxncvTAuPBsFCsTjO_uHUqUIM-NaLozH5Lata7zJnVE79bF6d89aWEWTnDK-2AeJunFG_7KFXa0lH-LcZguFNcGOOg71UyO4hIq1"/>
+</div>
+<div class="flex justify-between items-start mt-auto">
+<div>
+<h3 class="font-body-md text-body-md font-semibold text-on-surface group-hover:text-primary transition-colors">Cybernetic Joint</h3>
+<span class="font-tech-label text-tech-label text-on-surface-variant">STL</span>
+</div>
+<span class="font-price-display text-price-display text-secondary">$18</span>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="glass-panel rounded-xl overflow-hidden group hover:ambient-glow transition-shadow duration-500 flex flex-col p-4 pb-8 relative">
+<div class="absolute inset-0 border border-white/5 group-hover:border-primary/30 rounded-xl transition-colors pointer-events-none z-20"></div>
+<div class="w-full aspect-square rounded-lg overflow-hidden bg-surface-container relative mb-4">
+<div class="absolute inset-0 pedestal-shadow opacity-50 mix-blend-screen pointer-events-none z-10 bottom-0 h-1/2 top-auto"></div>
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="A sleek, sci-fi inspired sensor array dish meant for 3D printing. The model features intricate hexagonal grid patterns and glowing central core elements, presented against a stark, dark background with high-contrast lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAyi5PT35EWlN_WS_ySly5irC4rfmDsJWexcRsXKjhZ7I_w3NVB_X5XIv9qmgtdNqsElh-ZYLKrPNAGpEBviLGu0DRw5mXmqPQx75OSGVU0s2NC158DrLbqi3MxY8dvHEj-a1j01J6LB2kXena7rFricStZWYOJ_xceXrXQ37_8YBIEZrdavlyEmEKrRxv3bW73CqOrSaya92bFxVZ9iKi30J20WGGdv-daAvvLj-2I2_BXEwY8mNd8"/>
+</div>
+<div class="flex justify-between items-start mt-auto">
+<div>
+<h3 class="font-body-md text-body-md font-semibold text-on-surface group-hover:text-primary transition-colors">Sensor Array Dish</h3>
+<span class="font-tech-label text-tech-label text-on-surface-variant">STL / 3MF</span>
+</div>
+<span class="font-price-display text-price-display text-secondary">$24</span>
+</div>
+</div>
+<!-- Card 4 -->
+<div class="glass-panel rounded-xl overflow-hidden group hover:ambient-glow transition-shadow duration-500 flex flex-col p-4 pb-8 relative">
+<div class="absolute inset-0 border border-white/5 group-hover:border-primary/30 rounded-xl transition-colors pointer-events-none z-20"></div>
+<div class="w-full aspect-square rounded-lg overflow-hidden bg-surface-container relative mb-4">
+<div class="absolute inset-0 pedestal-shadow opacity-50 mix-blend-screen pointer-events-none z-10 bottom-0 h-1/2 top-auto"></div>
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="High-resolution render of a modular power cell unit for 3D printing. The design is blocky yet sophisticated, resembling futuristic battery packs with subtle glowing indicators and brushed metal textures." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB0QXYM-joxXK74wKsaqbiC2_vscRENxu9ahiJux-DRvauXPL0KyOIPc_U-cBPZxqpu9GlTujaR_r7GuAavlGGBpzT9JOx5d0cvGwLEPlDqBCV_-taHujx2PgDawTgxrm3PbnR7qAxj3xi3M8wnoGhp2Qnw_vFizKJgJN0B9g-f5UxmtawlUKXPkl4vCm-0f3gSag0sQFOZ-NfDIM5CtWwzHrffuhN4luSHGJdC2t0NkEO_SO3NhVPA"/>
+</div>
+<div class="flex justify-between items-start mt-auto">
+<div>
+<h3 class="font-body-md text-body-md font-semibold text-on-surface group-hover:text-primary transition-colors">Modular Power Cell</h3>
+<span class="font-tech-label text-tech-label text-on-surface-variant">OBJ</span>
+</div>
+<span class="font-price-display text-price-display text-secondary">$9</span>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="w-full py-stack-lg px-margin-desktop grid grid-cols-1 md:grid-cols-4 gap-gutter bg-surface-container-lowest border-t border-outline-variant mt-stack-lg relative z-10">
+<div class="col-span-1 md:col-span-1 flex flex-col gap-4">
+<span class="font-display-lg text-display-lg text-on-surface tracking-tighter font-black">3D DZ</span>
+<p class="font-body-md text-body-md text-on-surface-variant">© 2024 3D DZ. Manufacturing the future.</p>
+</div>
+<div class="col-span-1 md:col-span-3 flex flex-wrap gap-8 md:justify-end items-start pt-4">
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-secondary-container transition-colors underline-offset-4 hover:underline" href="#">Terms of Service</a>
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-secondary-container transition-colors underline-offset-4 hover:underline" href="#">Privacy Policy</a>
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-secondary-container transition-colors underline-offset-4 hover:underline" href="#">Licensing</a>
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-secondary-container transition-colors underline-offset-4 hover:underline" href="#">Support</a>
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-secondary-container transition-colors underline-offset-4 hover:underline" href="#">API Documentation</a>
+</div>
+</footer>
+</body></html>

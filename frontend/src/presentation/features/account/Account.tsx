@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { localized } from '../../../core/i18n/localized';
@@ -9,12 +10,15 @@ import type { Order, Product, Wilaya } from '../../../data/types';
 
 const statusColors = ['bg-yellow-600/20 text-yellow-300', 'bg-green-600/20 text-green-300', 'bg-red-600/20 text-red-300', 'bg-blue-600/20 text-blue-300'];
 
-export default function Account() {
+export default function Account({ defaultTab = 'orders' }: { defaultTab?: 'orders' | 'favorites' | 'profile' }) {
   const { t, i18n } = useTranslation();
+  const lang = i18n.language;
   const { user, loadUser } = useAuthStore();
   const [orders, setOrders] = useState<Order[]>([]);
   const [favorites, setFavorites] = useState<Product[]>([]);
-  const [tab, setTab] = useState<'orders' | 'favorites' | 'profile'>('orders');
+  const [tab, setTab] = useState<'orders' | 'favorites' | 'profile'>(defaultTab);
+
+  useEffect(() => { setTab(defaultTab); }, [defaultTab]);
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({ fullName: '', phone: '', wilayaCode: 0 });
   const [wilayas, setWilayas] = useState<any[]>([]);
@@ -28,6 +32,8 @@ export default function Account() {
   const [pwSaving, setPwSaving] = useState(false);
   const [pwError, setPwError] = useState('');
   const [pwSaved, setPwSaved] = useState(false);
+  const [reviewForms, setReviewForms] = useState<Record<string, { rating: number; comment: string; submitted: boolean; error: string }>>({});
+  const [reviewSubmitting, setReviewSubmitting] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     orderRepo.getMyOrders().then(setOrders).catch(() => {});
@@ -82,14 +88,14 @@ export default function Account() {
                     </span>
                   </div>
                   <div className="text-body-sm text-on-surface-variant mb-2">
-                    {order.items?.map(item => `${item.productName} × ${item.quantity}`).join(', ')}
+                    {order.items?.map(item => `${localized(item.productName, lang)} × ${item.quantity}`).join(', ')}
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-body-sm text-outline">{new Date(order.createdAt).toLocaleDateString(i18n.language === 'ar' ? 'ar-DZ' : i18n.language)}</span>
                     <span className="text-price-display text-primary">{order.total?.toLocaleString()} DA</span>
                   </div>
                   {expandedOrder === order.id && (
-                    <div className="mt-4 pt-4 border-t border-outline-variant/30 space-y-3">
+                    <div className="mt-4 pt-4 border-t border-outline-variant/30 space-y-3" onClick={e => e.stopPropagation()}>
                       <div className="grid grid-cols-2 gap-2 text-body-sm">
                         <span className="text-outline">{t('checkout.phone')}:</span><span>{order.customerPhone}</span>
                         <span className="text-outline">{t('checkout.email')}:</span><span>{order.customerEmail}</span>
@@ -99,7 +105,7 @@ export default function Account() {
                         <h4 className="text-body-sm font-semibold mb-2">{t('order.items')}</h4>
                         {order.items?.map((item, i) => (
                           <div key={i} className="flex justify-between text-body-sm py-1">
-                            <span>{item.productName} × {item.quantity}</span>
+                            <span>{localized(item.productName, lang)} × {item.quantity}</span>
                             <span className="text-primary">{(item.unitPrice * item.quantity).toLocaleString()} DA</span>
                           </div>
                         ))}
@@ -112,8 +118,75 @@ export default function Account() {
                         <div>
                           <h4 className="text-body-sm font-semibold mb-1">{t('order.history')}</h4>
                           {order.statusHistory.map((entry, i) => (
-                            <p key={i} className="text-body-sm text-outline">{t(`order.status_${entry.status}`)} — {new Date(entry.createdAt).toLocaleDateString()}</p>
+                            <p key={i} className="text-body-sm text-outline">
+                              {entry.status != null ? t(`order.status_${entry.status}`) : entry.text}
+                              {' — '}{new Date(entry.createdAt).toLocaleDateString()}
+                            </p>
                           ))}
+                        </div>
+                      )}
+                      {order.internalNotes && order.internalNotes.length > 0 && (
+                        <div>
+                          <h4 className="text-body-sm font-semibold mb-1">{t('order.internalNotes')}</h4>
+                          {order.internalNotes.map((note, i) => (
+                            <p key={i} className="text-body-sm text-outline">{note.text} — {new Date(note.createdAt).toLocaleDateString()}</p>
+                          ))}
+                        </div>
+                      )}
+                      {(order.status === 1 || order.status === 3) && (
+                        <div className="space-y-3">
+                          <h4 className="text-body-sm font-semibold">{t('product.writeReview')}</h4>
+                          {order.items?.map((item) => {
+                            const key = `${order.id}_${item.productId}`;
+                            const rf = reviewForms[key];
+                            const submitted = rf?.submitted;
+                            const submitting = reviewSubmitting[key];
+                            return (
+                              <div key={item.productId} className="rounded-lg p-3 space-y-2" style={{ backgroundColor: '#282a2f' }}>
+                                <p className="text-body-sm font-semibold">{localized(item.productName, lang)}</p>
+                                {submitted ? (
+                                  <p className="text-green-400 text-body-sm">{t('product.reviewSubmitted')}</p>
+                                ) : (
+                                  <>
+                                    <div className="flex gap-1">
+                                      {[1,2,3,4,5].map(star => (
+                                        <button key={star} type="button"
+                                          onClick={() => setReviewForms(f => ({ ...f, [key]: { ...f[key], rating: star, comment: f[key]?.comment || '' } }))}
+                                          className="text-xl">
+                                          <span className={`material-symbols-outlined ${(rf?.rating || 0) >= star ? 'text-yellow-400' : 'text-outline-variant'}`}
+                                            style={(rf?.rating || 0) >= star ? { fontVariationSettings: "'FILL' 1" } : undefined}>star</span>
+                                        </button>
+                                      ))}
+                                    </div>
+                                    <textarea placeholder={t('product.reviewPlaceholder')} rows={2}
+                                      value={rf?.comment || ''}
+                                      onChange={e => setReviewForms(f => ({ ...f, [key]: { ...f[key], comment: e.target.value, rating: f[key]?.rating || 0 } }))}
+                                      className="w-full bg-surface-variant text-on-surface rounded px-3 py-2 text-body-sm outline-none focus:ring-1 focus:ring-primary resize-none" />
+                                    {rf?.error && <p className="text-red-400 text-body-sm">{rf.error}</p>}
+                                    <button type="button" disabled={submitting || !(rf?.rating)}
+                                      onClick={async () => {
+                                        setReviewSubmitting(s => ({ ...s, [key]: true }));
+                                        setReviewForms(f => ({ ...f, [key]: { ...f[key], error: '' } }));
+                                        try {
+                                          await api.post('/reviews', {
+                                            productId: item.productId,
+                                            orderId: order.id,
+                                            rating: rf?.rating || 0,
+                                            comment: rf?.comment || ''
+                                          });
+                                          setReviewForms(f => ({ ...f, [key]: { ...f[key], submitted: true } }));
+                                        } catch (err: any) {
+                                          setReviewForms(f => ({ ...f, [key]: { ...f[key], error: err.response?.data?.error || t('common.error') } }));
+                                        } finally { setReviewSubmitting(s => ({ ...s, [key]: false })); }
+                                      }}
+                                      className="bg-primary text-on-primary px-4 py-1.5 rounded text-body-sm font-semibold disabled:opacity-50">
+                                      {submitting ? t('common.loading') : t('product.submitReview')}
+                                    </button>
+                                  </>
+                                )}
+                              </div>
+                            );
+                          })}
                         </div>
                       )}
                     </div>
@@ -168,7 +241,7 @@ export default function Account() {
                 <div><span className="text-outline text-body-sm">{t('auth.fullName')}:</span><p className="font-semibold">{user.fullName}</p></div>
                 <div><span className="text-outline text-body-sm">{t('auth.email')}:</span><p className="font-semibold">{user.email}</p></div>
                 {user.phone && <div><span className="text-outline text-body-sm">{t('auth.phone')}:</span><p className="font-semibold">{user.phone}</p></div>}
-                {(user as any).wilayaCode ? <div><span className="text-outline text-body-sm">{t('checkout.wilaya')}:</span><p className="font-semibold">{(user as any).wilayaCode}</p></div> : null}
+                {(user as any).wilayaCode ? <div><span className="text-outline text-body-sm">{t('checkout.wilaya')}:</span><p className="font-semibold">{localized(wilayas.find((w: Wilaya) => w.code === (user as any).wilayaCode)?.name, lang) || (user as any).wilayaCode}</p></div> : null}
                 <button onClick={() => setEditing(true)} className="bg-primary text-on-primary px-6 py-2 rounded-lg text-body-sm font-semibold mt-4">
                   {t('account.editProfile')}
                 </button>
@@ -190,7 +263,7 @@ export default function Account() {
                   <select value={form.wilayaCode} onChange={e => setForm(f => ({ ...f, wilayaCode: Number(e.target.value) }))}
                     className="w-full bg-surface-variant text-on-surface rounded px-4 py-3 text-body-sm outline-none">
                     <option value={0}>--</option>
-                    {wilayas.map((w: Wilaya) => <option key={w.code} value={w.code}>{w.name}</option>)}
+                    {wilayas.map((w: Wilaya) => <option key={w.code} value={w.code}>{localized(w.name, lang)}</option>)}
                   </select>
                 </div>
                 {saved && <p className="text-green-400 text-body-sm">{t('account.saved')}</p>}

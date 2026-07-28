@@ -44,8 +44,8 @@ public class BannerRepository : MongoRepository<Banner>, IBannerRepository
         var builder = Builders<Banner>.Filter;
         return await Collection.Find(builder.And(
             builder.Eq(b => b.Active, true),
-            builder.Or(builder.Exists(b => b.StartAt, false), builder.Lte(b => b.StartAt, now)),
-            builder.Or(builder.Exists(b => b.EndAt, false), builder.Gte(b => b.EndAt, now))
+            builder.Or(builder.Eq(b => b.StartAt, null), builder.Lte(b => b.StartAt, now)),
+            builder.Or(builder.Eq(b => b.EndAt, null), builder.Gte(b => b.EndAt, now))
         )).SortBy(b => b.SortOrder).ToListAsync();
     }
 }

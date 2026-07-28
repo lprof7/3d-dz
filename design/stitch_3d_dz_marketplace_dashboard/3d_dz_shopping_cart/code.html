@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>3D DZ - Cart</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;800&amp;family=JetBrains+Mono:wght@500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-primary-fixed-variant": "#862200",
+                      "on-primary": "#5f1500",
+                      "surface-bright": "#37393f",
+                      "primary-container": "#ff6a3d",
+                      "surface-variant": "#33353a",
+                      "on-tertiary-fixed": "#151b2a",
+                      "on-secondary-fixed-variant": "#004e5a",
+                      "surface-container-low": "#1a1b21",
+                      "error-container": "#93000a",
+                      "on-primary-fixed": "#3b0a00",
+                      "secondary-fixed-dim": "#2fd9f4",
+                      "secondary-fixed": "#a2eeff",
+                      "on-background": "#e2e2e9",
+                      "surface": "#111318",
+                      "tertiary-fixed-dim": "#c0c6da",
+                      "on-error-container": "#ffdad6",
+                      "primary": "#ffb59f",
+                      "secondary": "#5de6ff",
+                      "on-secondary": "#00363e",
+                      "on-error": "#690005",
+                      "primary-fixed": "#ffdbd1",
+                      "on-tertiary": "#2a3040",
+                      "tertiary-fixed": "#dce2f7",
+                      "surface-container-lowest": "#0c0e13",
+                      "on-surface": "#e2e2e9",
+                      "surface-container": "#1e1f25",
+                      "secondary-container": "#00cbe6",
+                      "surface-container-high": "#282a2f",
+                      "primary-fixed-dim": "#ffb59f",
+                      "inverse-surface": "#e2e2e9",
+                      "tertiary-container": "#9399ac",
+                      "on-tertiary-fixed-variant": "#404757",
+                      "on-secondary-container": "#00515d",
+                      "outline": "#a98a81",
+                      "surface-dim": "#111318",
+                      "surface-tint": "#ffb59f",
+                      "tertiary": "#c0c6da",
+                      "inverse-on-surface": "#2e3036",
+                      "error": "#ffb4ab",
+                      "on-tertiary-container": "#2b3141",
+                      "on-secondary-fixed": "#001f25",
+                      "inverse-primary": "#ae3104",
+                      "surface-container-highest": "#33353a",
+                      "on-surface-variant": "#e1bfb6",
+                      "outline-variant": "#59413a",
+                      "on-primary-container": "#611600",
+                      "background": "#111318"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "margin-desktop": "40px",
+                      "stack-sm": "12px",
+                      "container-max": "1440px",
+                      "gutter": "24px",
+                      "stack-md": "24px",
+                      "margin-mobile": "16px",
+                      "base": "8px",
+                      "stack-lg": "48px"
+              },
+              "fontFamily": {
+                      "display-lg": [
+                              "Sora"
+                      ],
+                      "tech-label": [
+                              "JetBrains Mono"
+                      ],
+                      "body-md": [
+                              "Sora"
+                      ],
+                      "headline-md": [
+                              "Sora"
+                      ],
+                      "display-lg-mobile": [
+                              "Sora"
+                      ],
+                      "body-lg": [
+                              "Sora"
+                      ],
+                      "price-display": [
+                              "JetBrains Mono"
+                      ]
+              },
+              "fontSize": {
+                      "display-lg": [
+                              "48px",
+                              {
+                                      "lineHeight": "56px",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "800"
+                              }
+                      ],
+                      "tech-label": [
+                              "14px",
+                              {
+                                      "lineHeight": "20px",
+                                      "letterSpacing": "0.05em",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "body-md": [
+                              "16px",
+                              {
+                                      "lineHeight": "24px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "headline-md": [
+                              "24px",
+                              {
+                                      "lineHeight": "32px",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "display-lg-mobile": [
+                              "32px",
+                              {
+                                      "lineHeight": "40px",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "800"
+                              }
+                      ],
+                      "body-lg": [
+                              "18px",
+                              {
+                                      "lineHeight": "28px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "price-display": [
+                              "20px",
+                              {
+                                      "lineHeight": "24px",
+                                      "fontWeight": "700"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+    </script>
+<style>
+        /* Ambient Glow Shadows */
+        .ambient-glow {
+            box-shadow: 0 0 40px -15px rgba(255, 106, 61, 0.3);
+        }
+        .ambient-glow-secondary {
+            box-shadow: 0 0 40px -15px rgba(34, 211, 238, 0.2);
+        }
+        /* Glassmorphism Layers */
+        .glass-panel {
+            background: rgba(26, 29, 39, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .glass-panel:hover {
+            border-color: rgba(255, 106, 61, 0.3);
+        }
+        /* Technical Button */
+        .btn-primary {
+            background: linear-gradient(180deg, #FF8A65 0%, #FF6A3D 100%);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.2), 0 4px 14px rgba(255, 106, 61, 0.4);
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.3), 0 6px 20px rgba(255, 106, 61, 0.6);
+        }
+        .btn-secondary {
+            border: 1px solid #5de6ff;
+            color: #5de6ff;
+            transition: all 0.3s ease;
+        }
+        .btn-secondary:hover {
+            background: rgba(93, 230, 255, 0.1);
+            box-shadow: 0 0 15px rgba(93, 230, 255, 0.2);
+        }
+        
+        /* 3D Pedestal */
+        .pedestal-shadow {
+            position: relative;
+        }
+        .pedestal-shadow::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            height: 20px;
+            background: radial-gradient(ellipse at center, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0) 70%);
+            z-index: -1;
+            filter: blur(5px);
+        }
+
+        /* Input Fields */
+        .tech-input {
+            background: #0D0F14;
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.3s ease;
+        }
+        .tech-input:focus {
+            outline: none;
+            border-color: #5de6ff;
+            box-shadow: 0 0 10px rgba(93, 230, 255, 0.3);
+        }
+        
+        /* HUD Decorations */
+        .hud-bracket {
+            position: relative;
+        }
+        .hud-bracket::before, .hud-bracket::after {
+            content: '';
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border: 1px solid rgba(93, 230, 255, 0.5);
+            pointer-events: none;
+        }
+        .hud-bracket::before {
+            top: -2px;
+            left: -2px;
+            border-right: none;
+            border-bottom: none;
+        }
+        .hud-bracket::after {
+            bottom: -2px;
+            right: -2px;
+            border-left: none;
+            border-top: none;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md min-h-screen flex flex-col pt-24">
+<!-- TopNavBar -->
+<nav class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-margin-desktop py-4 bg-surface/70 backdrop-blur-xl border-b border-white/10 shadow-[0_0_40px_-15px_rgba(255,106,61,0.3)]">
+<div class="flex items-center gap-8">
+<a class="font-display-lg text-display-lg font-black text-primary tracking-tighter" href="#">3D DZ</a>
+<div class="hidden md:flex items-center gap-6">
+<a class="text-on-surface-variant font-body-md text-body-md hover:text-primary transition-colors duration-300 active:scale-95 transition-transform" href="#">Categories</a>
+<a class="text-on-surface-variant font-body-md text-body-md hover:text-primary transition-colors duration-300 active:scale-95 transition-transform" href="#">Explore</a>
+<a class="text-on-surface-variant font-body-md text-body-md hover:text-primary transition-colors duration-300 active:scale-95 transition-transform" href="#">Newest</a>
+</div>
+</div>
+<div class="flex flex-1 max-w-md mx-8">
+<div class="relative w-full">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+<input class="tech-input w-full pl-10 pr-4 py-2 rounded-lg text-on-surface font-body-md" placeholder="Search models..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-on-surface-variant hover:text-primary transition-colors active:scale-95">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">favorite</span>
+</button>
+<button class="text-on-surface-variant hover:text-primary transition-colors active:scale-95 text-primary border-b-2 border-primary pb-1">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">shopping_cart</span>
+</button>
+<button class="btn-secondary px-4 py-2 rounded font-tech-label text-tech-label active:scale-95">Login</button>
+<button class="btn-primary px-4 py-2 rounded font-tech-label text-tech-label active:scale-95">Register</button>
+</div>
+</nav>
+<!-- Main Content Canvas -->
+<main class="flex-grow container mx-auto px-margin-mobile md:px-margin-desktop py-stack-lg max-w-container-max flex flex-col md:flex-row gap-gutter">
+<!-- Cart Items List (Bento Grid Style) -->
+<div class="w-full md:w-2/3 flex flex-col gap-6">
+<div class="flex justify-between items-end mb-4 border-b border-white/10 pb-4">
+<h1 class="font-display-lg-mobile md:font-display-lg text-display-lg-mobile md:text-display-lg text-on-surface">Your Cart</h1>
+<span class="font-tech-label text-tech-label text-on-surface-variant">2 Items</span>
+</div>
+<!-- Cart Item 1 -->
+<div class="glass-panel rounded-xl p-6 flex flex-col sm:flex-row gap-6 relative overflow-hidden group">
+<!-- Decorative HUD overlay on hover -->
+<div class="absolute inset-0 border border-primary/0 group-hover:border-primary/30 transition-colors pointer-events-none rounded-xl"></div>
+<!-- 3D Thumbnail -->
+<div class="w-32 h-32 flex-shrink-0 pedestal-shadow bg-surface-container-highest rounded-lg overflow-hidden relative">
+<img class="w-full h-full object-cover mix-blend-screen opacity-80 group-hover:opacity-100 transition-opacity" data-alt="A highly detailed 3D render of a futuristic sci-fi mechanical heart model, set against a dark, minimalist high-tech background. Illuminated by sharp, cinematic lighting with vibrant cyan and deep orange accents, highlighting the intricate gears and glowing conduits. The visual style embodies a premium, high-performance digital fabrication aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAoRTGfQusAcQVMED1hHyFSfN7R7OI-nPI7lsKajcKdWVOh79eZ32646grJL_omK_2TaDBGvbAqz2wOzvftLuXVbhxoIzSUBvHn7ZintOCO_k1BRx_FnSXDgK7eBxkow3G3S4IPpLlE2mSJqzHJCxZIuvUemuuBPxKhS9Lt8shjIZdiojUThyZS88DMoCv9MNoR8LbyiDguqUDe4itQyXmtUIGAFc84LVaFsTeROxPpGSFEcGP62yNZ"/>
+</div>
+<!-- Item Details -->
+<div class="flex-grow flex flex-col justify-between">
+<div>
+<div class="flex justify-between items-start">
+<h3 class="font-headline-md text-headline-md text-on-surface">Cyber-Heart V2.1</h3>
+<button class="text-on-surface-variant hover:text-error transition-colors">
+<span class="material-symbols-outlined">delete</span>
+</button>
+</div>
+<div class="flex gap-2 mt-2">
+<span class="bg-surface-container text-secondary font-tech-label text-[12px] px-2 py-1 rounded">STL</span>
+<span class="bg-surface-container text-secondary font-tech-label text-[12px] px-2 py-1 rounded">High-Res</span>
+</div>
+</div>
+<div class="flex justify-between items-center mt-4">
+<!-- Quantity Selector -->
+<div class="flex items-center gap-3 bg-surface-container-low rounded-lg p-1 border border-white/5">
+<button class="w-8 h-8 flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors bg-surface rounded hover:bg-surface-bright">
+<span class="material-symbols-outlined">remove</span>
+</button>
+<span class="font-tech-label text-tech-label text-on-surface w-4 text-center">1</span>
+<button class="w-8 h-8 flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors bg-surface rounded hover:bg-surface-bright">
+<span class="material-symbols-outlined">add</span>
+</button>
+</div>
+<!-- Price -->
+<div class="text-right">
+<div class="font-price-display text-price-display text-primary">$45.00</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Cart Item 2 -->
+<div class="glass-panel rounded-xl p-6 flex flex-col sm:flex-row gap-6 relative overflow-hidden group">
+<div class="absolute inset-0 border border-primary/0 group-hover:border-primary/30 transition-colors pointer-events-none rounded-xl"></div>
+<div class="w-32 h-32 flex-shrink-0 pedestal-shadow bg-surface-container-highest rounded-lg overflow-hidden relative">
+<img class="w-full h-full object-cover mix-blend-screen opacity-80 group-hover:opacity-100 transition-opacity" data-alt="A sleek, aerodynamic 3D printable drone frame concept model, presented on a subtle glowing pedestal. The lighting is cool and clinical, with sharp reflections on the matte dark-grey surfaces, accented by neon blue edge highlights. The overall mood is innovative and technical, matching a premium marketplace for digital creators." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDGXKBugEQVpGtfX1HQTzlWM4z1svoSOiI7oDowItjsXenLqk1R3OSj5nubLpNKDs65QWjZaLCBc74HWwT4XBL8GkFVcM7slZyuWhjqcxZRaOySDEZLP2EudSqfjSjj6Mwm1p6aPL7-xYGjQ36Sx5AJN9dK3DT5KRx_jTwzFZ2J0zpqsxwJWxSxQBm_V3rmPwlvXW-wIFiJPzJjthCs2HrvQVCNh0g1GOEst4AzS1dbjpJRm6IAk3vO"/>
+</div>
+<div class="flex-grow flex flex-col justify-between">
+<div>
+<div class="flex justify-between items-start">
+<h3 class="font-headline-md text-headline-md text-on-surface">Mantis Drone Chassis</h3>
+<button class="text-on-surface-variant hover:text-error transition-colors">
+<span class="material-symbols-outlined">delete</span>
+</button>
+</div>
+<div class="flex gap-2 mt-2">
+<span class="bg-surface-container text-secondary font-tech-label text-[12px] px-2 py-1 rounded">OBJ</span>
+<span class="bg-surface-container text-secondary font-tech-label text-[12px] px-2 py-1 rounded">Multi-part</span>
+</div>
+</div>
+<div class="flex justify-between items-center mt-4">
+<div class="flex items-center gap-3 bg-surface-container-low rounded-lg p-1 border border-white/5">
+<button class="w-8 h-8 flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors bg-surface rounded hover:bg-surface-bright">
+<span class="material-symbols-outlined">remove</span>
+</button>
+<span class="font-tech-label text-tech-label text-on-surface w-4 text-center">2</span>
+<button class="w-8 h-8 flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors bg-surface rounded hover:bg-surface-bright">
+<span class="material-symbols-outlined">add</span>
+</button>
+</div>
+<div class="text-right">
+<div class="font-price-display text-price-display text-primary">$30.00</div>
+<div class="font-tech-label text-[12px] text-on-surface-variant">$15.00 ea</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Order Summary Sidebar -->
+<div class="w-full md:w-1/3">
+<div class="glass-panel rounded-xl p-8 sticky top-32 ambient-glow hud-bracket">
+<h2 class="font-headline-md text-headline-md text-on-surface mb-6 border-b border-white/10 pb-4">Order Summary</h2>
+<div class="flex flex-col gap-4 font-tech-label text-tech-label mb-8">
+<div class="flex justify-between text-on-surface-variant">
+<span>Subtotal</span>
+<span class="text-on-surface font-price-display text-[16px]">$75.00</span>
+</div>
+<div class="flex justify-between text-on-surface-variant">
+<span>Tax (Estimated)</span>
+<span class="text-on-surface font-price-display text-[16px]">$6.00</span>
+</div>
+<div class="w-full h-px bg-white/10 my-2"></div>
+<div class="flex justify-between items-end">
+<span class="text-on-surface text-[16px]">Total</span>
+<span class="font-price-display text-[28px] text-primary">$81.00</span>
+</div>
+</div>
+<div class="space-y-4">
+<div class="relative">
+<input class="tech-input w-full pr-24 pl-4 py-3 rounded text-on-surface font-tech-label text-tech-label" placeholder="Promo Code" type="text"/>
+<button class="absolute right-1 top-1 bottom-1 px-4 bg-surface-container hover:bg-surface-bright text-secondary font-tech-label rounded transition-colors">Apply</button>
+</div>
+<button class="btn-primary w-full py-4 rounded-lg font-tech-label text-[16px] flex justify-center items-center gap-2 mt-4">
+                        Proceed to Order
+                        <span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</div>
+<!-- Trust Badges -->
+<div class="mt-8 pt-6 border-t border-white/5 flex justify-center gap-4 text-on-surface-variant opacity-60">
+<span class="material-symbols-outlined" title="Secure Checkout">lock</span>
+<span class="material-symbols-outlined" title="Instant Download">download</span>
+<span class="material-symbols-outlined" title="Verified Creator">verified</span>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="w-full py-stack-lg px-margin-desktop grid grid-cols-1 md:grid-cols-4 gap-gutter bg-surface-container-lowest border-t border-outline-variant flat mt-auto">
+<div class="col-span-1 md:col-span-1">
+<div class="font-display-lg text-display-lg text-on-surface mb-4">3D DZ</div>
+<p class="font-body-md text-body-md text-on-surface-variant">© 2024 3D DZ. Manufacturing the future.</p>
+</div>
+<div class="col-span-1 md:col-span-3 flex flex-wrap gap-8 justify-start md:justify-end">
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-secondary-container transition-colors underline-offset-4 hover:underline" href="#">Terms of Service</a>
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-secondary-container transition-colors underline-offset-4 hover:underline" href="#">Privacy Policy</a>
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-secondary-container transition-colors underline-offset-4 hover:underline" href="#">Licensing</a>
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-secondary-container transition-colors underline-offset-4 hover:underline" href="#">Support</a>
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-secondary-container transition-colors underline-offset-4 hover:underline" href="#">API Documentation</a>
+</div>
+</footer>
+</body></html>

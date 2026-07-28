@@ -1,8 +1,6 @@
-using MongoDB.Driver;
 using ThreeDDz.Application.Interfaces;
 using ThreeDDz.Domain.Enums;
 using ThreeDDz.Domain.Models;
-using ThreeDDz.Infrastructure.Repositories;
 
 namespace ThreeDDz.Infrastructure.Services;
 
@@ -12,16 +10,14 @@ public class OrderService : IOrderService
     private readonly IProductRepository _productRepo;
     private readonly ICartRepository _cartRepo;
     private readonly INotificationService _notif;
-    private readonly MongoContext _mongo;
 
     public OrderService(IOrderRepository orderRepo, IProductRepository productRepo,
-        ICartRepository cartRepo, INotificationService notif, MongoContext mongo)
+        ICartRepository cartRepo, INotificationService notif)
     {
         _orderRepo = orderRepo;
         _productRepo = productRepo;
         _cartRepo = cartRepo;
         _notif = notif;
-        _mongo = mongo;
     }
 
     public async Task<Order> PlaceAsync(string customerId, Order order)
@@ -60,20 +56,9 @@ public class OrderService : IOrderService
             new() { Text = "Order created", CreatedAt = DateTime.UtcNow, AdminId = customerId }
         };
 
-        using var session = await _mongo.Client.StartSessionAsync();
-        session.StartTransaction();
-        try
-        {
-            await _orderRepo.InsertAsync(order);
-            cart.Items.Clear();
-            await _cartRepo.UpdateAsync(cart.Id, cart);
-            await session.CommitTransactionAsync();
-        }
-        catch
-        {
-            await session.AbortTransactionAsync();
-            throw;
-        }
+        await _orderRepo.InsertAsync(order);
+        cart.Items.Clear();
+        await _cartRepo.UpdateAsync(cart.Id, cart);
 
         await _notif.OrderReceivedAsync(order);
         await _notif.AdminNewOrderAsync(order);
@@ -100,7 +85,8 @@ public class OrderService : IOrderService
         {
             Text = $"Status changed to {newStatus}",
             CreatedAt = DateTime.UtcNow,
-            AdminId = adminUserId
+            AdminId = adminUserId,
+            Status = (int)newStatus
         });
         await _orderRepo.UpdateAsync(id, order);
         await _notif.OrderStatusChangedAsync(order);

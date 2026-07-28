@@ -4,10 +4,12 @@ import { useTranslation } from 'react-i18next';
 import { productRepo } from '../../../data/repos/productRepo';
 import { categoryRepo, collectionRepo } from '../../../data/repos/categoryRepo';
 import ProductCard from '../../shared/ProductCard';
+import { localized } from '../../../core/i18n/localized';
 import type { Product, Category, Collection } from '../../../data/types';
 
 export default function Catalog() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const lang = i18n.language;
   const navigate = useNavigate();
   const location = useLocation();
   const { slug } = useParams<{ slug: string }>();
@@ -17,7 +19,7 @@ export default function Catalog() {
   const [collections, setCollections] = useState<Collection[]>([]);
   const [loading, setLoading] = useState(true);
   const [totalPages, setTotalPages] = useState(1);
-  const [priceBounds, setPriceBounds] = useState<{ min: number; max: number }>({ min: 0, max: 100000 });
+  const [priceBounds] = useState<{ min: number; max: number }>({ min: 0, max: 100000 });
 
   const isCollection = location.pathname.startsWith('/collection');
   const categorySlug = searchParams.get('category') || (slug && !isCollection ? slug : '');
@@ -26,13 +28,8 @@ export default function Catalog() {
   const search = searchParams.get('search');
   const minPrice = searchParams.get('minPrice') || undefined;
   const maxPrice = searchParams.get('maxPrice') || undefined;
-  // US-A4: rating filter
   const minRating = searchParams.get('minRating') ? Number(searchParams.get('minRating')) : undefined;
   const page = parseInt(searchParams.get('page') || '1', 10);
-
-  const categoryId = categorySlug
-    ? categories.find(c => c.slug === categorySlug)?.id || ''
-    : '';
 
   useEffect(() => {
     categoryRepo.getAll().then(setCategories);
@@ -40,6 +37,11 @@ export default function Catalog() {
   }, []);
 
   useEffect(() => {
+    const resolvedCategoryId = categorySlug
+      ? categories.find(c => c.slug === categorySlug)?.id || ''
+      : '';
+    if (categorySlug && !resolvedCategoryId && categories.length === 0) return;
+
     setLoading(true);
 
     if (collectionSlug && collections.length > 0) {
@@ -62,24 +64,26 @@ export default function Catalog() {
       maxPrice: maxPrice || undefined,
       minRating: minRating ?? undefined
     };
-    if (categoryId) params.categoryId = categoryId;
+    if (resolvedCategoryId) params.categoryId = resolvedCategoryId;
     productRepo.getAll(params)
       .then(res => {
         setProducts(res.items || []);
         setTotalPages(res.totalPages || 1);
       })
       .finally(() => setLoading(false));
-  }, [categoryId, collectionSlug, sort, search, minPrice, maxPrice, minRating, page, collections.length]);
+  }, [categorySlug, collectionSlug, sort, search, minPrice, maxPrice, minRating, page, categories, collections]);
+
+  const navBase = isCollection ? '' : '/catalog';
 
   const setParam = (key: string, value: string | null) => {
     const params = new URLSearchParams(searchParams);
     if (value) params.set(key, value);
     else params.delete(key);
     if (key !== 'page') params.set('page', '1');
-    navigate(`/catalog?${params.toString()}`);
+    const qs = params.toString();
+    navigate(qs ? `${navBase}?${qs}` : navBase);
   };
 
-  // US-A4: Price range slider (combined low/high)
   const setPriceRange = (lo: number, hi: number) => {
     const params = new URLSearchParams(searchParams);
     if (lo > 0) params.set('minPrice', String(lo));
@@ -87,7 +91,8 @@ export default function Catalog() {
     if (hi < priceBounds.max) params.set('maxPrice', String(hi));
     else params.delete('maxPrice');
     params.set('page', '1');
-    navigate(`/catalog?${params.toString()}`);
+    const qs = params.toString();
+    navigate(qs ? `${navBase}?${qs}` : navBase);
   };
 
   return (
@@ -97,7 +102,7 @@ export default function Catalog() {
           <div>
             <h3 className="text-body-md font-semibold mb-4">{t('nav.categories')}</h3>
             <div className="flex flex-col gap-2">
-              <Link to="/catalog" className={`text-body-md ${!categorySlug ? 'text-primary' : 'text-on-surface-variant'} hover:text-primary`}>
+              <Link to={navBase} className={`text-body-md ${!categorySlug ? 'text-primary' : 'text-on-surface-variant'} hover:text-primary`}>
                 {t('home.viewAll')}
               </Link>
               {categories.map(c => (
@@ -106,7 +111,7 @@ export default function Catalog() {
                   to={`/catalog?category=${c.slug}`}
                   className={`text-body-md ${categorySlug === c.slug ? 'text-primary' : 'text-on-surface-variant'} hover:text-primary`}
                 >
-                  {c.name}
+                  {localized(c.name, lang)}
                 </Link>
               ))}
             </div>

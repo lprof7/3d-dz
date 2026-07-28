@@ -45,7 +45,8 @@
     "submitReview": "إرسال التقييم",
     "reviewPlaceholder": "شارك تجربتك مع هذا النموذج...",
     "reviewSubmitted": "تم إرسال تقييمك! قيد المراجعة...",
-    "writeReview": "اكتب تقييماً"
+    "writeReview": "اكتب تقييماً",
+    "images": "الصور"
   },
   "cart": {
     "title": "سلة التسوق",
@@ -56,7 +57,8 @@
     "checkout": "متابعة الطلب",
     "remove": "حذف",
     "quantity": "الكمية",
-    "continueShopping": "مواصلة التسوق"
+    "continueShopping": "مواصلة التسوق",
+    "clear": "تفريغ السلة"
   },
   "checkout": {
     "title": "تقديم الطلب",
@@ -70,7 +72,8 @@
     "orderPlaced": "تم استلام طلبك بنجاح!",
     "orderReference": "رقم الطلب",
     "weWillContact": "سيتم التواصل معك قريباً لتأكيد الطلب",
-    "backToHome": "العودة للرئيسية"
+    "backToHome": "العودة للرئيسية",
+    "unavailableWarning": "تنبيه: منتجات غير متوفرة"
   },
   "auth": {
     "loginTitle": "تسجيل الدخول",
@@ -94,7 +97,9 @@
     "emailAlreadyRegistered": "هذا البريد مسجّل مسبقاً، سجّل الدخول بدلاً من ذلك",
     "resetSent": "إذا كان البريد مسجّلاً، ستصلك رسالة إعادة التعيين",
     "sendReset": "إرسال رابط إعادة التعيين",
-    "resetSuccess": "تم إعادة تعيين كلمة المرور! يتم التحويل..."
+    "resetSuccess": "تم إعادة تعيين كلمة المرور! يتم التحويل...",
+    "changePassword": "تغيير كلمة المرور",
+    "currentPassword": "كلمة المرور الحالية"
   },
   "account": {
     "myOrders": "طلباتي",
@@ -104,7 +109,8 @@
     "save": "حفظ",
     "saved": "تم الحفظ",
     "noOrders": "لا توجد طلبات بعد",
-    "noFavorites": "لا توجد منتجات في المفضلة"
+    "noFavorites": "لا توجد منتجات في المفضلة",
+    "orders": "الطلبات"
   },
   "order": {
     "status_0": "قيد الانتظار",
@@ -114,7 +120,10 @@
     "reference": "رقم الطلب",
     "date": "التاريخ",
     "items": "المنتجات",
-    "total": "الإجمالي"
+    "total": "الإجمالي",
+    "history": "سجل الطلبات",
+    "internalNotes": "ملاحظات",
+    "orders": "الطلبات"
   },
   "admin": {
     "dashboard": "لوحة التحكم",
@@ -152,7 +161,12 @@
     "analyticsTitle": "إحصائيات الموقع",
     "topProducts": "المنتجات الأكثر طلباً",
     "ordersByWilaya": "الطلبات حسب الولاية",
-    "noData": "لا توجد بيانات كافية بعد"
+    "noData": "لا توجد بيانات كافية بعد",
+    "add": "إضافة",
+    "upload": "رفع",
+    "addCategory": "إضافة فئة",
+    "addCollection": "إضافة مجموعة",
+    "addBanner": "إضافة بانر"
   },
   "common": {
     "loading": "جاري التحميل...",
@@ -161,7 +175,17 @@
     "notFound": "الصفحة غير موجودة",
     "backToHome": "العودة للرئيسية",
     "language": "اللغة",
+    "all": "الكل",
     "allRightsReserved": "جميع الحقوق محفوظة",
-    "manufacturingTheFuture": "Manufacturing the Future"
+    "manufacturingTheFuture": "تصنيع المستقبل",
+    "showMore": "عرض المزيد",
+    "more": "المزيد",
+    "min": "الحد الأدنى",
+    "max": "الحد الأقصى",
+    "prev": "السابق",
+    "next": "التالي",
+    "noNotes": "لا توجد ملاحظات",
+    "pending": "قيد الانتظار",
+    "cancel": "إلغاء"
   }
 }

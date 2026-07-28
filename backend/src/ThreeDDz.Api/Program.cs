@@ -72,7 +72,10 @@ builder.Services.AddAuthorization();
 
 // OpenApi disabled due to .NET 10 preview compatibility
 builder.Services.AddControllers().AddJsonOptions(o =>
-    o.JsonSerializerOptions.Converters.Add(new ThreeDDz.Domain.Models.LocalizedStringConverter()));
+{
+    o.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+    o.JsonSerializerOptions.Converters.Add(new ThreeDDz.Domain.Models.LocalizedStringConverter());
+});
 builder.Services.AddCors(o => o.AddDefaultPolicy(p => p.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()));
 
 var app = builder.Build();

@@ -4,6 +4,7 @@ import { adminRepo, reviewAdmin } from '../../../data/repos/adminRepo';
 import { productRepo } from '../../../data/repos/productRepo';
 import { categoryRepo, collectionRepo } from '../../../data/repos/categoryRepo';
 import api from '../../../core/api/client';
+import { localized } from '../../../core/i18n/localized';
 import type { Product, Order, Review, Customer, Category, Collection, Banner } from '../../../data/types';
 
 const statusColors = ['bg-yellow-600/20 text-yellow-300', 'bg-green-600/20 text-green-300', 'bg-red-600/20 text-red-300', 'bg-blue-600/20 text-blue-300'];
@@ -12,7 +13,8 @@ const statusLabels = ['order.status_0', 'order.status_1', 'order.status_2', 'ord
 type Tab = 'analytics' | 'products' | 'orders' | 'customers' | 'categories' | 'collections' | 'banners' | 'reviews';
 
 export default function AdminDashboard() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const lang = i18n.language;
   const [tab, setTab] = useState<Tab>('analytics');
   const [loading, setLoading] = useState(true);
   const [pendingNotif, setPendingNotif] = useState(0);
@@ -160,6 +162,7 @@ function AnalyticsTab() {
 
 function ProductsTab() {
   const { t, i18n } = useTranslation();
+  const lang = i18n.language;
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -250,7 +253,7 @@ function ProductsTab() {
         <select value={productCategoryFilter} onChange={e => setProductCategoryFilter(e.target.value)}
           className="bg-surface-container text-on-surface border border-outline-variant rounded px-3 py-2 text-body-sm">
           <option value="">{t('common.all')}</option>
-          {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+          {categories.map(c => <option key={c.id} value={c.id}>{localized(c.name, lang)}</option>)}
         </select>
       </div>
 
@@ -285,7 +288,7 @@ function ProductsTab() {
               <select value={form.categoryId || ''} onChange={e => setForm((f: any) => ({ ...f, categoryId: e.target.value }))}
                 className="w-full bg-surface-variant text-on-surface rounded px-4 py-3 text-body-sm outline-none">
                 <option value="">{t('nav.categories')}</option>
-                {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                {categories.map(c => <option key={c.id} value={c.id}>{localized(c.name, lang)}</option>)}
               </select>
               <div>
                 <label className="block text-outline text-body-sm mb-1">{t('product.images')}</label>
@@ -491,7 +494,7 @@ function OrdersTab() {
               <h3 className="text-body-sm font-semibold mb-2">{t('order.items')}</h3>
               {selected.items?.map((item, i) => (
                 <div key={i} className="flex justify-between text-body-sm py-1">
-                  <span>{item.productName} × {item.quantity}</span>
+                  <span>{localized(item.productName, i18n.language)} × {item.quantity}</span>
                   <span className="text-primary">{(item.unitPrice * item.quantity).toLocaleString()} DA</span>
                 </div>
               ))}
@@ -657,13 +660,16 @@ function CustomersTab() {
 }
 
 function CategoriesTab() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const lang = i18n.language;
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<Category | null>(null);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ name: '', slug: '' });
+  const [form, setForm] = useState({ name: { ar: '', en: '', fr: '' }, slug: '', description: { ar: '', en: '', fr: '' } });
   const [saving, setSaving] = useState(false);
+  const [nameLang, setNameLang] = useState('ar');
+  const [descLang, setDescLang] = useState('ar');
 
   const load = useCallback(() => {
     setLoading(true);
@@ -672,13 +678,41 @@ function CategoriesTab() {
 
   useEffect(() => { load(); }, [load]);
 
-  const openNew = () => { setEditing(null); setForm({ name: '', slug: '' }); setShowForm(true); };
-  const openEdit = (c: Category) => { setEditing(c); setForm({ name: c.name, slug: c.slug }); setShowForm(true); };
+  const getLocalized = (obj: any, lang: string) => {
+    if (!obj) return '';
+    if (typeof obj === 'string') return obj;
+    return obj[lang] || '';
+  };
+  const setLocalized = (field: string, lang: string, value: string) => {
+    setForm((f: any) => {
+      const current = typeof f[field] === 'string' ? {} : { ...(f[field] || {}) };
+      current[lang] = value;
+      return { ...f, [field]: current };
+    });
+  };
+
+  const langTabs = (lang: string, setLang: (l: string) => void) => (
+    <div className="flex gap-1 mb-1">
+      {['ar', 'fr', 'en'].map(l => (
+        <button key={l} type="button" onClick={() => setLang(l)}
+          className={`px-2 py-0.5 rounded text-xs ${lang === l ? 'bg-primary text-on-primary' : 'bg-surface-container text-outline'}`}>
+          {l === 'ar' ? 'العربية' : l === 'fr' ? 'Français' : 'English'}
+        </button>
+      ))}
+    </div>
+  );
+
+  const openNew = () => { setEditing(null); setForm({ name: { ar: '', en: '', fr: '' }, slug: '', description: { ar: '', en: '', fr: '' } }); setShowForm(true); };
+  const openEdit = (c: Category) => {
+    setEditing(c);
+    setForm({ name: typeof c.name === 'string' ? { ar: c.name, en: '', fr: '' } : { ar: '', en: '', fr: '', ...c.name }, slug: c.slug, description: c.description ? (typeof c.description === 'string' ? { ar: c.description, en: '', fr: '' } : { ar: '', en: '', fr: '', ...c.description }) : { ar: '', en: '', fr: '' } });
+    setShowForm(true);
+  };
 
   const save = async () => {
     setSaving(true);
     try {
-      const payload = { name: form.name, slug: form.slug || form.name.toLowerCase().replace(/\s+/g, '-') };
+      const payload = { name: form.name, description: form.description, slug: form.slug || getLocalized(form.name, 'en').toLowerCase().replace(/\s+/g, '-') };
       if (editing) await categoryRepo.update(editing.id, payload as any);
       else await categoryRepo.create(payload as any);
       setShowForm(false);
@@ -704,12 +738,16 @@ function CategoriesTab() {
           <div className="rounded-lg p-6 w-full max-w-md" style={{ backgroundColor: '#1e1f25' }}>
             <h2 className="text-headline-md mb-4">{editing ? t('admin.editProduct') : t('admin.categories')}</h2>
             <div className="space-y-3">
-              <input placeholder="Name" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+              {langTabs(nameLang, setNameLang)}
+              <input placeholder="Name" value={getLocalized(form.name, nameLang)} onChange={e => setLocalized('name', nameLang, e.target.value)}
                 className="w-full bg-surface-variant text-on-surface rounded px-4 py-3 text-body-sm outline-none focus:ring-1 focus:ring-primary" />
-              <input placeholder="Slug" value={form.slug} onChange={e => setForm(f => ({ ...f, slug: e.target.value }))}
+              {langTabs(descLang, setDescLang)}
+              <textarea placeholder="Description" value={getLocalized(form.description, descLang)} onChange={e => setLocalized('description', descLang, e.target.value)}
+                className="w-full bg-surface-variant text-on-surface rounded px-4 py-3 text-body-sm outline-none focus:ring-1 focus:ring-primary min-h-[80px]" />
+              <input placeholder="Slug" value={form.slug} onChange={e => setForm((f: any) => ({ ...f, slug: e.target.value }))}
                 className="w-full bg-surface-variant text-on-surface rounded px-4 py-3 text-body-sm outline-none focus:ring-1 focus:ring-primary" />
               <div className="flex gap-3 pt-2">
-                <button onClick={save} disabled={saving || !form.name}
+                <button onClick={save} disabled={saving || !getLocalized(form.name, 'ar')}
                   className="flex-1 bg-primary text-on-primary py-3 rounded-lg font-semibold disabled:opacity-50">
                   {saving ? t('common.loading') : t('admin.save')}
                 </button>
@@ -723,13 +761,13 @@ function CategoriesTab() {
       )}
 
       <div className="space-y-2">
-        {categories.map(c => (
+          {categories.map(c => (
           <div key={c.id} className="rounded-lg p-4 flex items-center gap-4" style={{ backgroundColor: '#1e1f25' }}>
             <div className="w-10 h-10 rounded flex items-center justify-center" style={{ backgroundColor: '#282a2f' }}>
               <span className="material-symbols-outlined text-outline-variant">category</span>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="font-semibold truncate">{c.name}</p>
+              <p className="font-semibold truncate">{localized(c.name, lang)}</p>
               <p className="text-body-sm text-outline">{c.slug}</p>
             </div>
             <div className="flex gap-2">
@@ -755,13 +793,16 @@ function CategoriesTab() {
 }
 
 function CollectionsTab() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const lang = i18n.language;
   const [collections, setCollections] = useState<Collection[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<Collection | null>(null);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ name: '', slug: '' });
+  const [form, setForm] = useState({ name: { ar: '', en: '', fr: '' }, slug: '', description: { ar: '', en: '', fr: '' } });
   const [saving, setSaving] = useState(false);
+  const [nameLang, setNameLang] = useState('ar');
+  const [descLang, setDescLang] = useState('ar');
 
   const load = useCallback(() => {
     setLoading(true);
@@ -770,13 +811,41 @@ function CollectionsTab() {
 
   useEffect(() => { load(); }, [load]);
 
-  const openNew = () => { setEditing(null); setForm({ name: '', slug: '' }); setShowForm(true); };
-  const openEdit = (c: Collection) => { setEditing(c); setForm({ name: c.name, slug: c.slug }); setShowForm(true); };
+  const getLocalized = (obj: any, lang: string) => {
+    if (!obj) return '';
+    if (typeof obj === 'string') return obj;
+    return obj[lang] || '';
+  };
+  const setLocalized = (field: string, lang: string, value: string) => {
+    setForm((f: any) => {
+      const current = typeof f[field] === 'string' ? {} : { ...(f[field] || {}) };
+      current[lang] = value;
+      return { ...f, [field]: current };
+    });
+  };
+
+  const langTabs = (lang: string, setLang: (l: string) => void) => (
+    <div className="flex gap-1 mb-1">
+      {['ar', 'fr', 'en'].map(l => (
+        <button key={l} type="button" onClick={() => setLang(l)}
+          className={`px-2 py-0.5 rounded text-xs ${lang === l ? 'bg-primary text-on-primary' : 'bg-surface-container text-outline'}`}>
+          {l === 'ar' ? 'العربية' : l === 'fr' ? 'Français' : 'English'}
+        </button>
+      ))}
+    </div>
+  );
+
+  const openNew = () => { setEditing(null); setForm({ name: { ar: '', en: '', fr: '' }, slug: '', description: { ar: '', en: '', fr: '' } }); setShowForm(true); };
+  const openEdit = (c: Collection) => {
+    setEditing(c);
+    setForm({ name: typeof c.name === 'string' ? { ar: c.name, en: '', fr: '' } : { ar: '', en: '', fr: '', ...c.name }, slug: c.slug, description: c.description ? (typeof c.description === 'string' ? { ar: c.description, en: '', fr: '' } : { ar: '', en: '', fr: '', ...c.description }) : { ar: '', en: '', fr: '' } });
+    setShowForm(true);
+  };
 
   const save = async () => {
     setSaving(true);
     try {
-      const payload = { name: form.name, slug: form.slug || form.name.toLowerCase().replace(/\s+/g, '-') };
+      const payload = { name: form.name, description: form.description, slug: form.slug || getLocalized(form.name, 'en').toLowerCase().replace(/\s+/g, '-') };
       if (editing) await collectionRepo.update(editing.id, payload as any);
       else await collectionRepo.create(payload as any);
       setShowForm(false);
@@ -802,12 +871,16 @@ function CollectionsTab() {
           <div className="rounded-lg p-6 w-full max-w-md" style={{ backgroundColor: '#1e1f25' }}>
             <h2 className="text-headline-md mb-4">{editing ? t('admin.editProduct') : t('admin.collections')}</h2>
             <div className="space-y-3">
-              <input placeholder="Name" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+              {langTabs(nameLang, setNameLang)}
+              <input placeholder="Name" value={getLocalized(form.name, nameLang)} onChange={e => setLocalized('name', nameLang, e.target.value)}
                 className="w-full bg-surface-variant text-on-surface rounded px-4 py-3 text-body-sm outline-none focus:ring-1 focus:ring-primary" />
-              <input placeholder="Slug" value={form.slug} onChange={e => setForm(f => ({ ...f, slug: e.target.value }))}
+              {langTabs(descLang, setDescLang)}
+              <textarea placeholder="Description" value={getLocalized(form.description, descLang)} onChange={e => setLocalized('description', descLang, e.target.value)}
+                className="w-full bg-surface-variant text-on-surface rounded px-4 py-3 text-body-sm outline-none focus:ring-1 focus:ring-primary min-h-[80px]" />
+              <input placeholder="Slug" value={form.slug} onChange={e => setForm((f: any) => ({ ...f, slug: e.target.value }))}
                 className="w-full bg-surface-variant text-on-surface rounded px-4 py-3 text-body-sm outline-none focus:ring-1 focus:ring-primary" />
               <div className="flex gap-3 pt-2">
-                <button onClick={save} disabled={saving || !form.name}
+                <button onClick={save} disabled={saving || !getLocalized(form.name, 'ar')}
                   className="flex-1 bg-primary text-on-primary py-3 rounded-lg font-semibold disabled:opacity-50">
                   {saving ? t('common.loading') : t('admin.save')}
                 </button>
@@ -821,13 +894,13 @@ function CollectionsTab() {
       )}
 
       <div className="space-y-2">
-        {collections.map(c => (
+          {collections.map(c => (
           <div key={c.id} className="rounded-lg p-4 flex items-center gap-4" style={{ backgroundColor: '#1e1f25' }}>
             <div className="w-10 h-10 rounded flex items-center justify-center" style={{ backgroundColor: '#282a2f' }}>
               <span className="material-symbols-outlined text-outline-variant">collections_bookmark</span>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="font-semibold truncate">{c.name}</p>
+              <p className="font-semibold truncate">{localized(c.name, lang)}</p>
               <p className="text-body-sm text-outline">{c.slug}</p>
             </div>
             <div className="flex gap-2">
@@ -846,13 +919,17 @@ function CollectionsTab() {
 }
 
 function BannersTab() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const lang = i18n.language;
   const [banners, setBanners] = useState<Banner[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<Banner | null>(null);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ title: '', subtitle: '', imageUrl: '', linkUrl: '', sortOrder: 0, isActive: true });
+  const [form, setForm] = useState<any>({});
   const [saving, setSaving] = useState(false);
+  const [titleLang, setTitleLang] = useState('ar');
+  const [subtitleLang, setSubtitleLang] = useState('ar');
+  const [ctaLang, setCtaLang] = useState('ar');
 
   const load = useCallback(() => {
     setLoading(true);
@@ -861,8 +938,49 @@ function BannersTab() {
 
   useEffect(() => { load(); }, [load]);
 
-  const openNew = () => { setEditing(null); setForm({ title: '', subtitle: '', imageUrl: '', linkUrl: '', sortOrder: 0, isActive: true }); setShowForm(true); };
-  const openEdit = (b: Banner) => { setEditing(b); setForm({ title: b.title, subtitle: b.subtitle || '', imageUrl: b.imageUrl, linkUrl: b.linkUrl || '', sortOrder: b.sortOrder || 0, isActive: b.isActive }); setShowForm(true); };
+  const getLocalized = (obj: any, lang: string) => {
+    if (!obj) return '';
+    if (typeof obj === 'string') return obj;
+    return obj[lang] || '';
+  };
+  const setLocalized = (field: string, lang: string, value: string) => {
+    setForm((f: any) => {
+      const current = typeof f[field] === 'string' ? {} : { ...(f[field] || {}) };
+      current[lang] = value;
+      return { ...f, [field]: current };
+    });
+  };
+
+  const langTabs = (lang: string, setLang: (l: string) => void) => (
+    <div className="flex gap-1 mb-1">
+      {['ar', 'fr', 'en'].map(l => (
+        <button key={l} type="button" onClick={() => setLang(l)}
+          className={`px-2 py-0.5 rounded text-xs ${lang === l ? 'bg-primary text-on-primary' : 'bg-surface-container text-outline'}`}>
+          {l === 'ar' ? 'العربية' : l === 'fr' ? 'Français' : 'English'}
+        </button>
+      ))}
+    </div>
+  );
+
+  const openNew = () => {
+    setEditing(null);
+    setForm({ title: { ar: '', en: '', fr: '' }, subtitle: { ar: '', en: '', fr: '' }, ctaText: { ar: '', en: '', fr: '' }, imageUrl: '', linkUrl: '', sortOrder: 0, active: true });
+    setShowForm(true);
+  };
+  const openEdit = (b: Banner) => {
+    setEditing(b);
+    setForm({
+      id: b.id,
+      title: typeof b.title === 'string' ? { ar: b.title, en: '', fr: '' } : { ar: '', en: '', fr: '', ...b.title },
+      subtitle: b.subtitle ? (typeof b.subtitle === 'string' ? { ar: b.subtitle, en: '', fr: '' } : { ar: '', en: '', fr: '', ...b.subtitle }) : { ar: '', en: '', fr: '' },
+      ctaText: b.ctaText ? (typeof b.ctaText === 'string' ? { ar: b.ctaText, en: '', fr: '' } : { ar: '', en: '', fr: '', ...b.ctaText }) : { ar: '', en: '', fr: '' },
+      imageUrl: b.imageUrl,
+      linkUrl: b.linkUrl || '',
+      sortOrder: b.sortOrder || 0,
+      active: b.active
+    });
+    setShowForm(true);
+  };
 
   const save = async () => {
     setSaving(true);
@@ -891,24 +1009,29 @@ function BannersTab() {
           <div className="rounded-lg p-6 w-full max-w-md" style={{ backgroundColor: '#1e1f25' }}>
             <h2 className="text-headline-md mb-4">{editing ? t('admin.editProduct') : t('admin.banners')}</h2>
             <div className="space-y-3">
-              <input placeholder="Title" value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
+              {langTabs(titleLang, setTitleLang)}
+              <input placeholder="Title" value={getLocalized(form.title, titleLang)} onChange={e => setLocalized('title', titleLang, e.target.value)}
                 className="w-full bg-surface-variant text-on-surface rounded px-4 py-3 text-body-sm outline-none focus:ring-1 focus:ring-primary" />
-              <input placeholder="Subtitle" value={form.subtitle} onChange={e => setForm(f => ({ ...f, subtitle: e.target.value }))}
+              {langTabs(subtitleLang, setSubtitleLang)}
+              <input placeholder="Subtitle" value={getLocalized(form.subtitle, subtitleLang)} onChange={e => setLocalized('subtitle', subtitleLang, e.target.value)}
                 className="w-full bg-surface-variant text-on-surface rounded px-4 py-3 text-body-sm outline-none focus:ring-1 focus:ring-primary" />
-              <input placeholder="Image URL" value={form.imageUrl} onChange={e => setForm(f => ({ ...f, imageUrl: e.target.value }))}
+              {langTabs(ctaLang, setCtaLang)}
+              <input placeholder="CTA Text" value={getLocalized(form.ctaText, ctaLang)} onChange={e => setLocalized('ctaText', ctaLang, e.target.value)}
                 className="w-full bg-surface-variant text-on-surface rounded px-4 py-3 text-body-sm outline-none focus:ring-1 focus:ring-primary" />
-              <input placeholder="Link URL" value={form.linkUrl} onChange={e => setForm(f => ({ ...f, linkUrl: e.target.value }))}
+              <input placeholder="Image URL" value={form.imageUrl} onChange={e => setForm((f: any) => ({ ...f, imageUrl: e.target.value }))}
+                className="w-full bg-surface-variant text-on-surface rounded px-4 py-3 text-body-sm outline-none focus:ring-1 focus:ring-primary" />
+              <input placeholder="Link URL" value={form.linkUrl} onChange={e => setForm((f: any) => ({ ...f, linkUrl: e.target.value }))}
                 className="w-full bg-surface-variant text-on-surface rounded px-4 py-3 text-body-sm outline-none focus:ring-1 focus:ring-primary" />
               <div className="flex items-center gap-4">
-                <input type="number" placeholder="Order" value={form.sortOrder} onChange={e => setForm(f => ({ ...f, sortOrder: Number(e.target.value) }))}
+                <input type="number" placeholder="Order" value={form.sortOrder} onChange={e => setForm((f: any) => ({ ...f, sortOrder: Number(e.target.value) }))}
                   className="w-24 bg-surface-variant text-on-surface rounded px-4 py-3 text-body-sm outline-none focus:ring-1 focus:ring-primary" />
                 <label className="flex items-center gap-2 text-body-sm">
-                  <input type="checkbox" checked={form.isActive} onChange={e => setForm(f => ({ ...f, isActive: e.target.checked }))} />
+                  <input type="checkbox" checked={form.active} onChange={e => setForm((f: any) => ({ ...f, active: e.target.checked }))} />
                   Active
                 </label>
               </div>
               <div className="flex gap-3 pt-2">
-                <button onClick={save} disabled={saving || !form.title}
+                <button onClick={save} disabled={saving || !getLocalized(form.title, 'ar')}
                   className="flex-1 bg-primary text-on-primary py-3 rounded-lg font-semibold disabled:opacity-50">
                   {saving ? t('common.loading') : t('admin.save')}
                 </button>
@@ -922,21 +1045,21 @@ function BannersTab() {
       )}
 
       <div className="space-y-2">
-        {banners.map(b => (
-          <div key={b.id} className="rounded-lg p-4 flex items-center gap-4" style={{ backgroundColor: '#1e1f25' }}>
-            {b.imageUrl ? (
-              <img src={b.imageUrl} alt={b.title} className="w-20 h-12 object-cover rounded" />
-            ) : (
-              <div className="w-20 h-12 rounded flex items-center justify-center" style={{ backgroundColor: '#282a2f' }}>
-                <span className="material-symbols-outlined text-outline-variant">image</span>
-              </div>
-            )}
-            <div className="flex-1 min-w-0">
-              <p className="font-semibold truncate">{b.title}</p>
-              <p className="text-body-sm text-outline">{b.subtitle}</p>
+          {banners.map(b => (
+            <div key={b.id} className="rounded-lg p-4 flex items-center gap-4" style={{ backgroundColor: '#1e1f25' }}>
+              {b.imageUrl ? (
+                <img src={b.imageUrl} alt={localized(b.title, lang)} className="w-20 h-12 object-cover rounded" />
+              ) : (
+                <div className="w-20 h-12 rounded flex items-center justify-center" style={{ backgroundColor: '#282a2f' }}>
+                  <span className="material-symbols-outlined text-outline-variant">image</span>
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold truncate">{localized(b.title, lang)}</p>
+                <p className="text-body-sm text-outline">{localized(b.subtitle || '', lang)}</p>
             </div>
             <div className="flex items-center gap-2">
-              {b.isActive ? (
+              {b.active ? (
                 <span className="text-xs bg-green-600/20 text-green-300 px-2 py-0.5 rounded-full">Active</span>
               ) : (
                 <span className="text-xs bg-red-600/20 text-red-300 px-2 py-0.5 rounded-full">Inactive</span>
@@ -979,7 +1102,8 @@ function ReviewsTab() {
             <span className="font-semibold">{r.customerName}</span>
             <div className="flex items-center gap-1">
               {Array.from({ length: 5 }).map((_, i) => (
-                <span key={i} className={`material-symbols-outlined text-sm ${i < r.rating ? 'text-primary' : 'text-outline-variant'}`}>star</span>
+                <span key={i} className={`material-symbols-outlined text-sm ${i < r.rating ? 'text-primary' : 'text-outline-variant'}`}
+                  style={i < r.rating ? { fontVariationSettings: "'FILL' 1" } : undefined}>star</span>
               ))}
             </div>
           </div>

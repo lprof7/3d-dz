@@ -168,7 +168,7 @@ public static class SeedData
                 Subtitle = new LocalizedString("نموذج ثلاثية الأبعاد لمصممين جزائريين", "Modèles 3D premium pour makers algériens", "Premium 3D models for Algerian makers"),
                 ImageUrl = "https://picsum.photos/seed/3ddz-banner/1440/600",
                 CtaText = new LocalizedString("اكتشف النماذج", "Découvrir", "Explore Models"),
-                LinkUrl = "/explore",
+                LinkUrl = "/catalog",
                 Active = true,
                 SortOrder = 1
             });

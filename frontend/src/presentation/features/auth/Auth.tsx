@@ -14,6 +14,7 @@ export default function Auth() {
   const initialMode = resetToken ? 'reset' : urlMode;
   const [mode, setMode] = useState(initialMode);
   const [form, setForm] = useState({ fullName: '', email: '', phone: '', password: '', confirmPassword: '', token: resetToken });
+  const next = searchParams.get('next') || '/';
   const [forgotSent, setForgotSent] = useState(false);
   const [forgotMsg, setForgotMsg] = useState('');
   const [pwMismatch, setPwMismatch] = useState('');
@@ -25,11 +26,11 @@ export default function Auth() {
     try {
       if (mode === 'login') {
         await login(form.email, form.password);
-        navigate('/');
+        navigate(next, { replace: true });
       } else if (mode === 'register') {
         if (form.password !== form.confirmPassword) { setPwMismatch(t('auth.passwordMismatch')); return; } else { setPwMismatch(''); }
         await register({ fullName: form.fullName, email: form.email, phone: form.phone, password: form.password });
-        navigate('/');
+        navigate(next, { replace: true });
       } else if (mode === 'forgot') {
         await api.post('/auth/forgot-password', { email: form.email });
         setForgotSent(true);
