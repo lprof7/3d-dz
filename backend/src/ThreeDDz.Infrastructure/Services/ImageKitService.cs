@@ -1,4 +1,3 @@
-using System.Security.Cryptography;
 using System.Text;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -6,12 +5,12 @@ using ThreeDDz.Application.Interfaces;
 
 namespace ThreeDDz.Infrastructure.Services;
 
-public class ImageKitService : IImageKitService
+public class ImageKitService : IImageKitService, IFileStorageService
 {
     private readonly IConfiguration _config;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly ILogger<ImageKitService> _logger;
-    private string GetConfig(string key) => _config[$"IMAGEKIT_{key}"] ?? _config[$"ImageKit:{key}"] ?? string.Empty;
+    private string GetConfig(string key) => _config[$"IMAGEKIT_{key}"] ?? _config[$"ImageKit:{key}"] ?? _config[$"ImageKit:{key.Replace("_", "")}"] ?? string.Empty;
     public string PublicKey => GetConfig("PUBLIC_KEY");
 
     public ImageKitService(IConfiguration config, IHttpClientFactory httpClientFactory, ILogger<ImageKitService> logger)
@@ -32,14 +31,14 @@ public class ImageKitService : IImageKitService
         }
 
         using var client = _httpClientFactory.CreateClient("ImageKit");
+        client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue(
+            "Basic", Convert.ToBase64String(Encoding.UTF8.GetBytes($"{privateKey}:")));
+
         using var form = new MultipartFormDataContent();
         form.Add(new StreamContent(stream), "file", fileName);
         form.Add(new StringContent(folder), "folder");
-        form.Add(new StringContent(PublicKey), "publicKey");
-        var (token, signature) = GenerateSignature(privateKey);
-        form.Add(new StringContent(token), "token");
-        form.Add(new StringContent(signature), "signature");
-        form.Add(new StringContent(DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString()), "timestamp");
+        form.Add(new StringContent("true"), "useUniqueFileName");
+        form.Add(new StringContent(fileName), "fileName");
 
         try
         {
@@ -62,14 +61,14 @@ public class ImageKitService : IImageKitService
         }
     }
 
-    private static (string token, string signature) GenerateSignature(string privateKey)
+    public async Task<string> UploadAsync(Stream stream, string fileName, string contentType)
     {
-        var timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString();
-        var token = Guid.NewGuid().ToString("N");
-        var str = token + timestamp;
-        using var hmac = new HMACSHA1(Encoding.UTF8.GetBytes(privateKey));
-        var hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(str));
-        var signature = Convert.ToHexString(hash).ToLowerInvariant();
-        return (token, signature);
+        return await UploadFileAsync(stream, fileName, "3d-dz");
+    }
+
+    public Task DeleteAsync(string url)
+    {
+        _logger.LogInformation("ImageKit delete skipped (no-op): {Url}", url);
+        return Task.CompletedTask;
     }
 }

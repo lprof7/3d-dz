@@ -46,7 +46,9 @@
     "reviewPlaceholder": "Partagez votre expérience avec ce modèle...",
     "reviewSubmitted": "Votre avis est soumis ! En attente d'approbation...",
     "writeReview": "Écrire un Avis",
-    "images": "Images"
+    "images": "Images",
+    "noPreview": "Aucun aperçu disponible pour ce produit",
+    "availableFormats": "Formats disponibles:"
   },
   "cart": {
     "title": "Panier d'Achat",
@@ -110,7 +112,9 @@
     "saved": "Enregistré",
     "noOrders": "Aucune commande pour le moment",
     "noFavorites": "Aucun favori pour le moment",
-    "orders": "Commandes"
+    "orders": "Commandes",
+    "myDownloads": "Mes Téléchargements",
+    "noDownloads": "Aucun téléchargement disponible. Achetez un produit et attendez la confirmation de la commande."
   },
   "order": {
     "status_0": "En Attente",
@@ -121,6 +125,10 @@
     "date": "Date",
     "items": "Articles",
     "total": "Total",
+    "download": "Télécharger",
+    "downloading": "Téléchargement...",
+    "fileSize": "Taille du Fichier",
+    "modelFormat": "Format",
     "history": "Historique des Commandes",
     "internalNotes": "Notes",
     "orders": "Commandes"
@@ -164,9 +172,32 @@
     "noData": "Aucune donnée pour le moment",
     "add": "Ajouter",
     "upload": "Télécharger",
+    "replace": "Remplacer",
     "addCategory": "Ajouter une Catégorie",
     "addCollection": "Ajouter une Collection",
-    "addBanner": "Ajouter une Bannière"
+    "addBanner": "Ajouter une Bannière",
+    "productName": "Nom du Produit",
+    "discountPercent": "Remise %",
+    "discountStart": "Début Remise",
+    "discountEnd": "Fin Remise",
+    "selectCategory": "Sélectionner une Catégorie",
+    "coverImage": "Image de Couverture",
+    "images": "Images du Produit",
+    "coverIsFirst": "La première image est la couverture",
+    "cover": "Couverture",
+    "model3d": "Modèle 3D",
+    "modelUploaded": "Téléchargé",
+    "published": "Publié",
+    "currency": "Devise",
+    "fileFormatPlaceholder": "ex. STL, OBJ",
+    "fileFormatsRequired": "Au moins un format de fichier est requis",
+    "nameRequired": "Le nom du produit est requis",
+    "categoryRequired": "La catégorie est requise",
+    "priceRequired": "Le prix est requis",
+    "priceInvalid": "Le prix doit être supérieur à 0",
+    "saveSuccess": "Produit enregistré avec succès",
+    "saveError": "Échec de l'enregistrement du produit",
+    "validationError": "Veuillez corriger les erreurs ci-dessus"
   },
   "common": {
     "loading": "Chargement...",

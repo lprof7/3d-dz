@@ -46,7 +46,9 @@
     "reviewPlaceholder": "Share your experience with this model...",
     "reviewSubmitted": "Your review is submitted! Awaiting approval...",
     "writeReview": "Write a Review",
-    "images": "Images"
+    "images": "Images",
+    "noPreview": "No preview available for this product",
+    "availableFormats": "Available formats:"
   },
   "cart": {
     "title": "Shopping Cart",
@@ -110,7 +112,9 @@
     "saved": "Saved",
     "noOrders": "No orders yet",
     "noFavorites": "No favorites yet",
-    "orders": "Orders"
+    "orders": "Orders",
+    "myDownloads": "My Downloads",
+    "noDownloads": "No downloads available yet. Purchase a product and wait for order confirmation."
   },
   "order": {
     "status_0": "Pending",
@@ -121,6 +125,10 @@
     "date": "Date",
     "items": "Items",
     "total": "Total",
+    "download": "Download",
+    "downloading": "Downloading...",
+    "fileSize": "File Size",
+    "modelFormat": "Format",
     "history": "Order History",
     "internalNotes": "Notes",
     "orders": "Orders"
@@ -164,9 +172,32 @@
     "noData": "No data yet",
     "add": "Add",
     "upload": "Upload",
+    "replace": "Replace",
     "addCategory": "Add Category",
     "addCollection": "Add Collection",
-    "addBanner": "Add Banner"
+    "addBanner": "Add Banner",
+    "productName": "Product Name",
+    "discountPercent": "Discount %",
+    "discountStart": "Discount Start",
+    "discountEnd": "Discount End",
+    "selectCategory": "Select Category",
+    "coverImage": "Cover Image",
+    "images": "Product Images",
+    "coverIsFirst": "The first image is the cover",
+    "cover": "Cover",
+    "model3d": "3D Model",
+    "modelUploaded": "Uploaded",
+    "published": "Published",
+    "currency": "Currency",
+    "fileFormatPlaceholder": "e.g. STL, OBJ",
+    "fileFormatsRequired": "At least one file format is required",
+    "nameRequired": "Product name is required",
+    "categoryRequired": "Category is required",
+    "priceRequired": "Price is required",
+    "priceInvalid": "Price must be greater than 0",
+    "saveSuccess": "Product saved successfully",
+    "saveError": "Failed to save product",
+    "validationError": "Please fix the errors above"
   },
   "common": {
     "loading": "Loading...",

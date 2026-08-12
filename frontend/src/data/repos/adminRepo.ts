@@ -13,7 +13,7 @@ export const adminRepo = {
   getCustomers: () => api.get('/admin/customers').then(r => r.data.items as Customer[]),
   toggleBan: (id: string) => api.patch(`/admin/customers/${id}/ban`).then(r => r.data.isBanned as boolean),
 
-  getProducts: () => api.get('/admin/products').then(r => r.data.items as Product[]),
+  getProducts: () => api.get('/products').then(r => r.data.items as Product[]),
   getAnalytics: (params?: { from?: string; to?: string }) =>
     api.get('/admin/analytics', { params }).then(r => r.data),
 

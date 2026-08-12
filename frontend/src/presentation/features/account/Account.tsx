@@ -3,20 +3,24 @@ import { useSearchParams } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { localized } from '../../../core/i18n/localized';
+import { ik } from '../../../core/utils/image';
 import { useAuthStore } from '../../../core/auth/store';
 import { orderRepo, favoriteRepo, wilayaRepo } from '../../../data/repos/orderRepo';
 import api from '../../../core/api/client';
-import type { Order, Product, Wilaya } from '../../../data/types';
+import type { Order, Product, Wilaya, DownloadableProduct } from '../../../data/types';
 
 const statusColors = ['bg-yellow-600/20 text-yellow-300', 'bg-green-600/20 text-green-300', 'bg-red-600/20 text-red-300', 'bg-blue-600/20 text-blue-300'];
 
-export default function Account({ defaultTab = 'orders' }: { defaultTab?: 'orders' | 'favorites' | 'profile' }) {
+export default function Account({ defaultTab = 'orders' }: { defaultTab?: 'orders' | 'favorites' | 'profile' | 'downloads' }) {
   const { t, i18n } = useTranslation();
   const lang = i18n.language;
   const { user, loadUser } = useAuthStore();
   const [orders, setOrders] = useState<Order[]>([]);
   const [favorites, setFavorites] = useState<Product[]>([]);
-  const [tab, setTab] = useState<'orders' | 'favorites' | 'profile'>(defaultTab);
+  const [downloads, setDownloads] = useState<DownloadableProduct[]>([]);
+  const [downloadsLoading, setDownloadsLoading] = useState(false);
+  const [tab, setTab] = useState<'orders' | 'favorites' | 'profile' | 'downloads'>(defaultTab);
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
   useEffect(() => { setTab(defaultTab); }, [defaultTab]);
   const [editing, setEditing] = useState(false);
@@ -39,6 +43,8 @@ export default function Account({ defaultTab = 'orders' }: { defaultTab?: 'order
     orderRepo.getMyOrders().then(setOrders).catch(() => {});
     favoriteRepo.getAll().then(setFavorites).catch(() => {});
     wilayaRepo.getAll().then(setWilayas).catch(() => {});
+    setDownloadsLoading(true);
+    orderRepo.getMyDownloads().then(setDownloads).catch(() => {}).finally(() => setDownloadsLoading(false));
   }, []);
 
   useEffect(() => {
@@ -57,14 +63,24 @@ export default function Account({ defaultTab = 'orders' }: { defaultTab?: 'order
     finally { setSaving(false); }
   };
 
+  const handleDownload = async (productId: string) => {
+    if (downloadingId) return;
+    setDownloadingId(productId);
+    try {
+      const res = await orderRepo.getDownloadUrl(productId);
+      window.open(res.downloadUrl, '_blank');
+    } catch { alert(t('common.error')); }
+    finally { setDownloadingId(null); }
+  };
+
   return (
     <div className="mx-auto px-4 md:px-10 pt-24 pb-16" style={{ maxWidth: '1440px' }}>
       <h1 className="text-headline-md mb-8">{t('nav.myAccount')}</h1>
 
-      <div className="flex gap-4 mb-8 border-b border-outline-variant/30">
-        {(['orders', 'favorites', 'profile'] as const).map(tabKey => (
+      <div className="flex gap-4 mb-8 border-b border-outline-variant/30 overflow-x-auto">
+        {(['orders', 'downloads', 'favorites', 'profile'] as const).map(tabKey => (
           <button key={tabKey} onClick={() => setTab(tabKey)}
-            className={`pb-2 text-body-md font-semibold border-b-2 transition-colors ${tab === tabKey ? 'border-primary text-primary' : 'border-transparent text-on-surface-variant'}`}
+            className={`pb-2 text-body-md font-semibold border-b-2 transition-colors whitespace-nowrap ${tab === tabKey ? 'border-primary text-primary' : 'border-transparent text-on-surface-variant'}`}
           >
             {t(`account.my${tabKey.charAt(0).toUpperCase() + tabKey.slice(1)}`)}
           </button>
@@ -103,12 +119,24 @@ export default function Account({ defaultTab = 'orders' }: { defaultTab?: 'order
                       </div>
                       <div className="rounded-lg p-3" style={{ backgroundColor: '#282a2f' }}>
                         <h4 className="text-body-sm font-semibold mb-2">{t('order.items')}</h4>
-                        {order.items?.map((item, i) => (
-                          <div key={i} className="flex justify-between text-body-sm py-1">
-                            <span>{localized(item.productName, lang)} × {item.quantity}</span>
-                            <span className="text-primary">{(item.unitPrice * item.quantity).toLocaleString()} DA</span>
-                          </div>
-                        ))}
+                        {order.items?.map((item, i) => {
+                          const dl = downloads.find(d => d.productId === item.productId);
+                          return (
+                            <div key={i} className="flex justify-between text-body-sm py-1 items-center">
+                              <span>{localized(item.productName, lang)} × {item.quantity}</span>
+                              <span className="flex items-center gap-3">
+                                <span className="text-primary">{(item.unitPrice * item.quantity).toLocaleString()} DA</span>
+                                {(order.status === 1 || order.status === 3) && dl && (
+                                  <button onClick={() => handleDownload(item.productId)} disabled={downloadingId === item.productId}
+                                    className="bg-primary/20 text-primary px-3 py-1 rounded text-xs font-semibold hover:bg-primary/30 disabled:opacity-40 flex items-center gap-1">
+                                    <span className="material-symbols-outlined text-sm">{downloadingId === item.productId ? 'sync' : 'download'}</span>
+                                    {downloadingId === item.productId ? t('order.downloading') : t('order.download')}
+                                  </button>
+                                )}
+                              </span>
+                            </div>
+                          );
+                        })}
                         <div className="flex justify-between text-body-sm font-semibold pt-2 mt-2 border-t border-outline-variant/30">
                           <span>{t('cart.total')}</span>
                           <span className="text-price-display text-primary">{order.total?.toLocaleString()} DA</span>
@@ -204,6 +232,46 @@ export default function Account({ defaultTab = 'orders' }: { defaultTab?: 'order
         )
       )}
 
+      {tab === 'downloads' && (
+        downloadsLoading ? (
+          <div className="text-center py-16 text-on-surface-variant">{t('common.loading')}</div>
+        ) : downloads.length === 0 ? (
+          <div className="text-center py-16 text-on-surface-variant">
+            <p className="mb-4">{t('account.noDownloads')}</p>
+            <Link to="/catalog" className="text-primary underline">{t('nav.explore')}</Link>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {downloads.map(dl => {
+              const name = typeof dl.productName === 'string' ? dl.productName : (dl.productName as any)?.ar || (dl.productName as any)?.en || '';
+              return (
+                <div key={dl.productId} className="rounded-lg overflow-hidden" style={{ backgroundColor: '#1e1f25' }}>
+                  <div className="aspect-square overflow-hidden flex items-center justify-center" style={{ backgroundColor: '#282a2f' }}>
+                    {dl.images?.[0] ? (
+                      <img src={ik(dl.images[0], 600)} alt={name} className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="material-symbols-outlined text-4xl text-outline-variant">3d_rotation</span>
+                    )}
+                  </div>
+                  <div className="p-4 space-y-2">
+                    <h3 className="text-body-md font-semibold truncate">{name}</h3>
+                    <div className="flex items-center gap-3 text-body-sm text-outline">
+                      {dl.modelFormat && <span>{t('order.modelFormat')}: {dl.modelFormat.toUpperCase()}</span>}
+                      {dl.fileSizeMb != null && <span>{t('order.fileSize')}: {dl.fileSizeMb} MB</span>}
+                    </div>
+                    <button onClick={() => handleDownload(dl.productId)} disabled={downloadingId === dl.productId}
+                      className="w-full bg-primary text-on-primary py-2 rounded-lg text-body-sm font-semibold disabled:opacity-50 flex items-center justify-center gap-2">
+                      <span className="material-symbols-outlined text-lg">{downloadingId === dl.productId ? 'sync' : 'download'}</span>
+                      {downloadingId === dl.productId ? t('order.downloading') : t('order.download')}
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )
+      )}
+
       {tab === 'favorites' && (
         favorites.length === 0 ? (
           <div className="text-center py-16 text-on-surface-variant">
@@ -216,7 +284,7 @@ export default function Account({ defaultTab = 'orders' }: { defaultTab?: 'order
               <Link key={p.id} to={`/product/${p.slug}`} className="group rounded-lg overflow-hidden" style={{ backgroundColor: '#1e1f25' }}>
                 <div className="aspect-square overflow-hidden" style={{ backgroundColor: '#282a2f' }}>
                   {p.images?.[0] ? (
-                    <img src={p.images[0]} alt={localized(p.name, i18n.language)} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                    <img src={ik(p.images[0], 600)} alt={localized(p.name, i18n.language)} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
                       <span className="material-symbols-outlined text-4xl text-outline-variant">3d_rotation</span>

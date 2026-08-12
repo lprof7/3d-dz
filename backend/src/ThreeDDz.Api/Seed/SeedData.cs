@@ -42,29 +42,32 @@ public static class SeedData
             await userRepo.InsertAsync(admin);
         }
 
-        // 3. Categories
-        var cats = await catRepo.GetAllAsync();
-        if (cats.Count == 0)
+        // 3. Categories, Collections & Products (v2 seed: only Accessories + Car Parts)
+        var carPartsCat = await catRepo.GetBySlugAsync("car-parts");
+        var accessoriesCat = await catRepo.GetBySlugAsync("accessories");
+        List<Category> cats;
+        List<Product> products;
+        if (carPartsCat == null || accessoriesCat == null)
         {
+            // Reset catalog: wipe old products, collections and categories, then seed fresh
+            foreach (var p in await prodRepo.GetAllAsync()) await prodRepo.DeleteAsync(p.Id);
+            foreach (var col in await colRepo.GetAllAsync()) await colRepo.DeleteAsync(col.Id);
+            foreach (var c in await catRepo.GetAllAsync()) await catRepo.DeleteAsync(c.Id);
+
             var categoryData = GetCategoryData();
             foreach (var c in categoryData) await catRepo.InsertAsync(c);
             cats = await catRepo.GetAllAsync();
-        }
 
-        // 4. Collections
-        var cols = await colRepo.GetAllAsync();
-        if (cols.Count == 0)
-        {
             var collectionData = GetCollectionData(cats);
             foreach (var c in collectionData) await colRepo.InsertAsync(c);
-        }
 
-        // 5. Products
-        var products = await prodRepo.GetAllAsync();
-        if (products.Count == 0)
-        {
             var productData = GetProductData(cats);
             foreach (var p in productData) await prodRepo.InsertAsync(p);
+            products = await prodRepo.GetAllAsync();
+        }
+        else
+        {
+            cats = await catRepo.GetAllAsync();
             products = await prodRepo.GetAllAsync();
         }
 
@@ -256,26 +259,18 @@ public static class SeedData
     {
         return new List<Category>
         {
-            new() { Slug = "home-decor", Name = new("ديكور المنزل", "Décoration intérieure", "Home Decor"), Description = new("قطع ديكور ثلاثية الأبعاد للمنزل", "Pièces de décoration 3D pour la maison", "3D printed home decoration pieces"), SortOrder = 1 },
-            new() { Slug = "gadgets-tools", Name = new("أدوات وإكسسوارات", "Gadgets & Outils", "Gadgets & Tools"), Description = new("أدوات عملية ومفيدة", "Outils pratiques et utiles", "Practical and useful tools"), SortOrder = 2 },
-            new() { Slug = "toys-games", Name = new("ألعاب وتسلية", "Jeux & Jouets", "Toys & Games"), Description = new("ألعاب أطفال وألغاز ثلاثية الأبعاد", "Jeux et puzzles 3D pour enfants", "Kids toys and 3D puzzles"), SortOrder = 3 },
-            new() { Slug = "cosplay-props", Name = new("كوزبلاي وإكسسوارات", "Cosplay & Accessoires", "Cosplay & Props"), Description = new("قطع كوزبلاي ودعائم تصوير", "Pièces de cosplay et accessoires", "Cosplay pieces and props"), SortOrder = 4 },
-            new() { Slug = "miniatures", Name = new("مجسمات مصغرة", "Miniatures", "Miniatures"), Description = new("مجسمات مصغرة لشخصيات ومباني", "Miniatures de personnages et bâtiments", "Character and building miniatures"), SortOrder = 5 },
-            new() { Slug = "mechanical-parts", Name = new("أجزاء ميكانيكية", "Pièces mécaniques", "Mechanical Parts"), Description = new("أجزاء وقطع غيار قابلة للطباعة", "Pièces de rechange imprimables", "Printable replacement parts"), SortOrder = 6 },
-            new() { Slug = "jewelry", Name = new("مجوهرات وإكسسوارات", "Bijouterie & Accessoires", "Jewelry"), Description = new("مجوهرات وإكسسوارات أنيقة", "Bijoux et accessoires élégants", "Elegant jewelry and accessories"), SortOrder = 7 },
-            new() { Slug = "educational", Name = new("نماذج تعليمية", "Modèles éducatifs", "Educational Models"), Description = new("نماذج تعليمية للعلوم والتكنولوجيا", "Modèles éducatifs STEM", "STEM educational models"), SortOrder = 8 },
-            new() { Slug = "keychains", Name = new("سلاسل مفاتيح", "Porte-clés", "Keychains"), Description = new("سلاسل مفاتيح مخصصة", "Porte-clés personnalisés", "Custom keychains"), SortOrder = 9 },
-            new() { Slug = "lamp-shades", Name = new("أباجورات وإضاءة", "Abat-jour & Éclairage", "Lamps & Lighting"), Description = new("أباجورات وتصاميم إضاءة فنية", "Abat-jour et designs d'éclairage artistiques", "Artistic lampshades and lighting designs"), SortOrder = 10 },
+            new() { Slug = "accessories", Name = new("إكسسوارات", "Accessoires", "Accessories"), Description = new("إكسسوارات عملية ثلاثية الأبعاد", "Accessoires pratiques imprimés en 3D", "Practical 3D printed accessories"), SortOrder = 1 },
+            new() { Slug = "car-parts", Name = new("قطع السيارات", "Pièces auto", "Car Parts"), Description = new("قطع وإكسسوارات سيارات قابلة للطباعة", "Pièces et accessoires auto imprimables", "Printable car parts and accessories"), SortOrder = 2 },
         };
     }
 
     private static List<Collection> GetCollectionData(List<Category> categories)
     {
+        var all = categories.Select(c => c.Id).ToList();
         return new List<Collection>
         {
-            new() { Slug = "starter-pack", Name = new("باك البداية", "Pack Débutant", "Starter Pack"), Description = new("مجموعة مشاريع سهلة للمبتدئين في الطباعة ثلاثية الأبعاد", "Projets faciles pour débutants en impression 3D", "Easy projects for 3D printing beginners"), CategoryIds = categories.Select(c => c.Id).Take(4).ToList() },
-            new() { Slug = "best-sellers", Name = new("الأكثر مبيعاً", "Meilleures ventes", "Best Sellers"), Description = new("أشهر النماذج وأكثرها طلباً", "Les modèles les plus populaires", "The most popular and requested models"), CategoryIds = categories.Select(c => c.Id).Skip(2).Take(4).ToList() },
-            new() { Slug = "new-arrivals", Name = new("وصل حديثاً", "Nouveautés", "New Arrivals"), Description = new("أحدث النماذج المضافة للمنصة", "Les derniers modèles ajoutés", "Latest models added to the platform"), CategoryIds = categories.Select(c => c.Id).Skip(5).ToList() },
+            new() { Slug = "best-sellers", Name = new("الأكثر مبيعاً", "Meilleures ventes", "Best Sellers"), Description = new("أشهر النماذج وأكثرها طلباً", "Les modèles les plus populaires", "The most popular and requested models"), CategoryIds = all },
+            new() { Slug = "new-arrivals", Name = new("وصل حديثاً", "Nouveautés", "New Arrivals"), Description = new("أحدث النماذج المضافة للمنصة", "Les derniers modèles ajoutés", "Latest models added to the platform"), CategoryIds = all },
         };
     }
 
@@ -285,24 +280,20 @@ public static class SeedData
         var rng = new Random(42);
         var products = new List<Product>
         {
-            new() { Name = new("مزهرية حلزونية", "Vase Spirale", "Spiral Vase"), Description = new("مزهرية بتصميم حلزوني أنيق", "Vase élégant au design en spirale", "Elegant spiral-designed vase"), CategoryId = catDict["home-decor"], Price = 1500m, Images = new List<string> { "https://picsum.photos/seed/vase1/800/800" }, FileFormats = new List<string> { "STL", "3MF" }, FileSizeMb = 15.2m, IsFeatured = true },
-            new() { Name = new("حامل قلم مكتبي", "Porte-stylo de bureau", "Desk Pen Holder"), Description = new("حامل قلم عصري لمكتبك", "Support de stylo moderne pour votre bureau", "Modern pen holder for your desk"), CategoryId = catDict["home-decor"], Price = 800m, Images = new List<string> { "https://picsum.photos/seed/penholder1/800/800" }, FileFormats = new List<string> { "STL" }, FileSizeMb = 4.5m, IsFeatured = true },
-            new() { Name = new("حامل هاتف", "Support téléphone", "Phone Stand"), Description = new("حامل هاتف قابل للتعديل", "Support de téléphone ajustable", "Adjustable phone stand"), CategoryId = catDict["gadgets-tools"], Price = 600m, Images = new List<string> { "https://picsum.photos/seed/phonestand1/800/800" }, FileFormats = new List<string> { "STL", "OBJ" }, FileSizeMb = 3.1m, IsFeatured = true },
-            new() { Name = new("مكعب ألغاز", "Cube Puzzle", "Puzzle Cube"), Description = new("مكعب ألغاز ثلاثي الأبعاد قابل للطباعة", "Cube de puzzle 3D imprimable", "Printable 3D puzzle cube"), CategoryId = catDict["toys-games"], Price = 500m, Images = new List<string> { "https://picsum.photos/seed/cube1/800/800" }, FileFormats = new List<string> { "STL", "3MF" }, FileSizeMb = 8.7m, IsFeatured = true },
-            new() { Name = new("قناع خارق", "Masque de super-héros", "Superhero Mask"), Description = new("قناع بطولات قابل للارتداء", "Masque de héros ajustable", "Adjustable hero mask"), CategoryId = catDict["cosplay-props"], Price = 1200m, Images = new List<string> { "https://picsum.photos/seed/mask1/800/800" }, FileFormats = new List<string> { "STL", "OBJ" }, FileSizeMb = 22.4m },
-            new() { Name = new("تمثال تنين صغير", "Petite statue de dragon", "Dragon Miniature"), Description = new("تمثال تنين مفصّل بحجم 10 سم", "Statue de dragon détaillée 10cm", "Detailed 10cm dragon statue"), CategoryId = catDict["miniatures"], Price = 2500m, Images = new List<string> { "https://picsum.photos/seed/dragon1/800/800" }, FileFormats = new List<string> { "STL", "OBJ", "3MF" }, FileSizeMb = 45.3m, IsFeatured = true },
-            new() { Name = new("مشبك كابل", "Clip pour câble", "Cable Clip"), Description = new("مشبك لتنظيم الكابلات والأسلاك", "Clip pour organiser les câbles", "Clip for cable management"), CategoryId = catDict["mechanical-parts"], Price = 200m, Images = new List<string> { "https://picsum.photos/seed/clip1/800/800" }, FileFormats = new List<string> { "STL" }, FileSizeMb = 0.8m },
-            new() { Name = new("خاتم حلزوني", "Bague Spirale", "Spiral Ring"), Description = new("خاتم بتصميم حلزوني أنيق", "Bague au design spiralé élégant", "Elegant spiral-designed ring"), CategoryId = catDict["jewelry"], Price = 350m, Images = new List<string> { "https://picsum.photos/seed/ring1/800/800" }, FileFormats = new List<string> { "STL", "3MF" }, FileSizeMb = 1.2m, IsFeatured = true },
-            new() { Name = new("مجموعة أقراط", "Ensemble de boucles d'oreilles", "Earring Set"), Description = new("مجموعة أقراط هندسية", "Ensemble de boucles d'oreilles géométriques", "Geometric earring set"), CategoryId = catDict["jewelry"], Price = 450m, Images = new List<string> { "https://picsum.photos/seed/earrings1/800/800" }, FileFormats = new List<string> { "STL", "OBJ" }, FileSizeMb = 0.9m },
-            new() { Name = new("مجسم ذرة", "Modèle d'atome", "Atom Model"), Description = new("مجسم تعليمي لذرة الكربون", "Modèle éducatif d'atome de carbone", "Educational carbon atom model"), CategoryId = catDict["educational"], Price = 900m, Images = new List<string> { "https://picsum.photos/seed/atom1/800/800" }, FileFormats = new List<string> { "STL" }, FileSizeMb = 6.4m },
-            new() { Name = new("مجموعة ترس", "Engrenage Set", "Gear Set STEM"), Description = new("مجموعة تروس تعليمية", "Ensemble d'engrenages éducatif", "Educational gear set"), CategoryId = catDict["educational"], Price = 1800m, Images = new List<string> { "https://picsum.photos/seed/gears1/800/800" }, FileFormats = new List<string> { "STL", "3MF" }, FileSizeMb = 12.7m, IsFeatured = true },
-            new() { Name = new("مفتاح الجزائر", "Porte-clés Algérie", "Algeria Keychain"), Description = new("سلسلة مفاتيح على شكل خريطة الجزائر", "Porte-clés en forme de carte d'Algérie", "Algeria map shaped keychain"), CategoryId = catDict["keychains"], Price = 300m, Images = new List<string> { "https://picsum.photos/seed/algeria-kc/800/800" }, FileFormats = new List<string> { "STL" }, FileSizeMb = 2.1m },
-            new() { Name = new("مفتاح برج المقرية", "Porte-clés Tour de la Maurétanie", "Maurétania Tower Keychain"), Description = new("سلسلة مفاتيح برج المقرية", "Porte-clés tour de la Maurétanie", "Maurétania tower keychain"), CategoryId = catDict["keychains"], Price = 350m, Images = new List<string> { "https://picsum.photos/seed/tower-kc/800/800" }, FileFormats = new List<string> { "STL", "3MF" }, FileSizeMb = 3.5m },
-            new() { Name = new("أباجورة هندسية", "Lampe géométrique", "Geometric Lamp"), Description = new("أباجورة بتصميم هندسي حديث", "Lampe au design géométrique moderne", "Modern geometric design lamp"), CategoryId = catDict["lamp-shades"], Price = 3200m, Images = new List<string> { "https://picsum.photos/seed/lamp1/800/800" }, FileFormats = new List<string> { "STL", "OBJ", "3MF" }, FileSizeMb = 35.1m, IsFeatured = true },
-            new() { Name = new("غطاء أباجورة عثماني", "Abat-jour ottoman", "Ottoman Lampshade"), Description = new("غطاء أباجورة بتصميم عثماني تقليدي", "Abat-jour au design ottoman traditionnel", "Traditional Ottoman design lampshade"), CategoryId = catDict["lamp-shades"], Price = 2800m, Images = new List<string> { "https://picsum.photos/seed/ottoman-lamp/800/800" }, FileFormats = new List<string> { "STL", "OBJ" }, FileSizeMb = 28.6m },
-            new() { Name = new("منظم مكتب", "Organiseur de bureau", "Desk Organizer"), Description = new("منظم مكتب متعدد الاستخدامات", "Organiseur de bureau polyvalent", "Multi-purpose desk organizer"), CategoryId = catDict["home-decor"], Price = 1500m, Images = new List<string> { "https://picsum.photos/seed/organizer1/800/800" }, FileFormats = new List<string> { "STL", "3MF" }, FileSizeMb = 18.2m, IsFeatured = true },
-            new() { Name = new("طائرة لعبة", "Avion jouet", "Toy Plane"), Description = new("طائرة لعبة قابلة للتجميع", "Avion jouet à assembler", "Assembleable toy plane"), CategoryId = catDict["toys-games"], Price = 1100m, Images = new List<string> { "https://picsum.photos/seed/plane1/800/800" }, FileFormats = new List<string> { "STL", "OBJ" }, FileSizeMb = 14.3m },
-            new() { Name = new("قطع شطرنج", "Pièces d'échecs", "Chess Pieces"), Description = new("مجموعة قطع شطرنج كلاسيكية كاملة", "Jeu d'échecs classique complet", "Full classic chess set"), CategoryId = catDict["toys-games"], Price = 2000m, Images = new List<string> { "https://picsum.photos/seed/chess1/800/800" }, FileFormats = new List<string> { "STL", "3MF" }, FileSizeMb = 25.8m, IsFeatured = true },
+            new() { Name = new("حامل هاتف قابل للتعديل", "Support téléphone ajustable", "Adjustable Phone Stand"), Description = new("حامل هاتف عملي قابل للتعديل", "Support de téléphone pratique et ajustable", "Practical adjustable phone stand"), CategoryId = catDict["accessories"], Price = 600m, Images = Imgs("phone-stand"), FileFormats = new List<string> { "STL", "OBJ" }, FileSizeMb = 3.1m, IsFeatured = true },
+            new() { Name = new("سلسلة مفاتيح الجزائر", "Porte-clés Algérie", "Algeria Keychain"), Description = new("سلسلة مفاتيح على شكل خريطة الجزائر", "Porte-clés en forme de carte d'Algérie", "Algeria map shaped keychain"), CategoryId = catDict["accessories"], Price = 300m, Images = Imgs("algeria-kc"), FileFormats = new List<string> { "STL" }, FileSizeMb = 2.1m },
+            new() { Name = new("حامل قلم مكتبي", "Porte-stylo de bureau", "Desk Pen Holder"), Description = new("حامل قلم عصري لمكتبك", "Support de stylo moderne pour votre bureau", "Modern pen holder for your desk"), CategoryId = catDict["accessories"], Price = 800m, Images = Imgs("pen-holder"), FileFormats = new List<string> { "STL" }, FileSizeMb = 4.5m, IsFeatured = true },
+            new() { Name = new("منظم مكتب", "Organiseur de bureau", "Desk Organizer"), Description = new("منظم مكتب متعدد الاستخدامات", "Organiseur de bureau polyvalent", "Multi-purpose desk organizer"), CategoryId = catDict["accessories"], Price = 1500m, Images = Imgs("desk-organizer"), FileFormats = new List<string> { "STL", "3MF" }, FileSizeMb = 18.2m, IsFeatured = true },
+            new() { Name = new("مشبك كابل", "Clip pour câble", "Cable Clip"), Description = new("مشبك لتنظيم الكابلات والأسلاك", "Clip pour organiser les câbles", "Clip for cable management"), CategoryId = catDict["accessories"], Price = 200m, Images = Imgs("cable-clip"), FileFormats = new List<string> { "STL" }, FileSizeMb = 0.8m },
+            new() { Name = new("حامل سماعات رأس", "Support casque", "Headphone Stand"), Description = new("حامل أنيق لسماعات الرأس", "Support élégant pour casque", "Elegant headphone stand"), CategoryId = catDict["accessories"], Price = 1300m, Images = Imgs("headphone-stand"), FileFormats = new List<string> { "STL" }, FileSizeMb = 9.6m, IsFeatured = true },
+
+            new() { Name = new("حامل هاتف للسيارة", "Support téléphone voiture", "Car Phone Mount"), Description = new("حامل هاتف ثابت للوحة القيادة", "Support de téléphone pour tableau de bord", "Dash mount phone holder"), CategoryId = catDict["car-parts"], Price = 1200m, Images = Imgs("car-phone-mount"), FileFormats = new List<string> { "STL", "OBJ" }, FileSizeMb = 5.4m, IsFeatured = true },
+            new() { Name = new("غطاء حافة عجلة", "Enjoliveur de roue", "Wheel Hub Cap"), Description = new("غطاء حافة عجلة قابل للطباعة", "Enjoliveur de roue imprimable", "Printable wheel hub cap"), CategoryId = catDict["car-parts"], Price = 2500m, Images = Imgs("wheel-hub-cap"), FileFormats = new List<string> { "STL", "3MF" }, FileSizeMb = 34.2m },
+            new() { Name = new("موزع هواء لفتحات المكيف", "Diffuseur d'air de clim", "AC Vent Air Diffuser"), Description = new("موزع هواء لفتحات التكييف", "Diffuseur d'air pour ventilation", "Air diffuser for AC vents"), CategoryId = catDict["car-parts"], Price = 900m, Images = Imgs("ac-diffuser"), FileFormats = new List<string> { "STL" }, FileSizeMb = 7.8m },
+            new() { Name = new("حامل فنجان للسيارة", "Support gobelet voiture", "Car Cup Holder Insert"), Description = new("حامل فنجان متناسق مع الكونسول", "Support de gobelet pour console", "Console compatible cup holder"), CategoryId = catDict["car-parts"], Price = 750m, Images = Imgs("cup-holder"), FileFormats = new List<string> { "STL" }, FileSizeMb = 6.2m, IsFeatured = true },
+            new() { Name = new("غطاء مقبض الباب", "Cache poignée de porte", "Door Handle Cover"), Description = new("غطاء مقبض باب خارجي", "Cache de poignée de porte extérieure", "Exterior door handle cover"), CategoryId = catDict["car-parts"], Price = 1100m, Images = Imgs("door-handle-cover"), FileFormats = new List<string> { "STL", "OBJ" }, FileSizeMb = 12.4m },
+            new() { Name = new("منظم صندوق الأدوات", "Organiseur de coffre", "Tool Box Organizer"), Description = new("منظم متعدد الحجرات لصندوق الأدوات", "Organiseur à plusieurs compartiments", "Multi-compartment tool box organizer"), CategoryId = catDict["car-parts"], Price = 1800m, Images = Imgs("toolbox-organizer"), FileFormats = new List<string> { "STL", "3MF" }, FileSizeMb = 21.7m },
+            new() { Name = new("إطار لوحة الأرقام", "Cadre de plaque", "License Plate Frame"), Description = new("إطار لوحة أرقام أنيق قابل للطباعة", "Cadre de plaque d'immatriculation imprimable", "Printable license plate frame"), CategoryId = catDict["car-parts"], Price = 650m, Images = Imgs("plate-frame"), FileFormats = new List<string> { "STL" }, FileSizeMb = 4.9m },
         };
         foreach (var p in products)
         {
@@ -311,6 +302,102 @@ public static class SeedData
         }
         return products;
     }
+
+    private static List<string> Imgs(string seed) => seed switch
+    {
+        "phone-stand" => new()
+        {
+            "https://m.media-amazon.com/images/I/61BdKHo7ymL._AC_SL1500_.jpg",
+            "https://m.media-amazon.com/images/I/61Dsa0PfOPL._AC_SL1500_.jpg",
+            "https://m.media-amazon.com/images/I/61-eVGnnwGL._AC_SL1500_.jpg",
+        },
+        "headphone-stand" => new()
+        {
+            "https://m.media-amazon.com/images/I/71uZddgeCNL._AC_SL1500_.jpg",
+            "https://m.media-amazon.com/images/I/715V6IOUVGL._AC_SL1500_.jpg",
+            "https://m.media-amazon.com/images/I/71yiB6rdQJL._AC_SL1500_.jpg",
+        },
+        "cup-holder" => new()
+        {
+            "https://m.media-amazon.com/images/I/5173RdpWraL._AC_SL1500_.jpg",
+        },
+        "algeria-kc" => new()
+        {
+            "https://live.staticflickr.com/79/237409211_968b489c59_b.jpg",
+            "https://live.staticflickr.com/7080/13896885161_79e3c18209_b.jpg",
+            "https://live.staticflickr.com/7373/10535109203_ec0fa3ca51_b.jpg",
+            "https://live.staticflickr.com/4117/4790710889_6797c0eca1_b.jpg",
+        },
+        "pen-holder" => new()
+        {
+            "https://live.staticflickr.com/7328/14137196234_d4fdff6fbf_b.jpg",
+            "https://live.staticflickr.com/5226/5653449863_dafec502d6_b.jpg",
+            "https://live.staticflickr.com/7088/7167704577_451869e8c1_b.jpg",
+            "https://live.staticflickr.com/3858/18882409179_9039cd0e37_b.jpg",
+        },
+        "desk-organizer" => new()
+        {
+            "https://live.staticflickr.com/8682/29967923790_6fc2bcc24c_b.jpg",
+            "https://live.staticflickr.com/8742/30229628306_cb43c2bc22_b.jpg",
+            "https://live.staticflickr.com/5571/29633962454_f089179f54_b.jpg",
+            "https://live.staticflickr.com/8547/29633965114_474b883a55_b.jpg",
+        },
+        "cable-clip" => new()
+        {
+            "https://live.staticflickr.com/65535/53051045882_b5b487f81f_b.jpg",
+            "https://live.staticflickr.com/8370/8375162597_d6c096b8db.jpg",
+            "https://live.staticflickr.com/8522/8598977928_ea29b29935_b.jpg",
+            "https://live.staticflickr.com/4143/4860536595_fabf65e50d_b.jpg",
+        },
+        "car-phone-mount" => new()
+        {
+            "https://live.staticflickr.com/5509/9088259363_d4a26a4fc5_b.jpg",
+            "https://live.staticflickr.com/65535/52205479968_031a9d776e_b.jpg",
+            "https://live.staticflickr.com/65535/52205961480_6e15cc07fa_b.jpg",
+            "https://live.staticflickr.com/65535/52205479548_f87ac071b0_b.jpg",
+        },
+        "wheel-hub-cap" => new()
+        {
+            "https://live.staticflickr.com/6203/6095887481_1833e21d99_b.jpg",
+            "https://live.staticflickr.com/8305/7993262601_3306b8922c_b.jpg",
+            "https://live.staticflickr.com/2942/15220656447_05a3ee408d_b.jpg",
+            "https://live.staticflickr.com/4011/4427687123_53c4f82a58_b.jpg",
+        },
+        "ac-diffuser" => new()
+        {
+            "https://live.staticflickr.com/148/388165208_f27afca191.jpg",
+            "https://live.staticflickr.com/225/514445334_e1b5d0b688.jpg",
+            "https://live.staticflickr.com/3683/14315817595_36664e1c8e.jpg",
+            "https://live.staticflickr.com/3012/2783749675_8e38c2d9c5_b.jpg",
+        },
+        "door-handle-cover" => new()
+        {
+            "https://live.staticflickr.com/4410/36229712510_1072721bee_b.jpg",
+            "https://live.staticflickr.com/2804/4316668220_0b27cf03fd_b.jpg",
+            "https://live.staticflickr.com/3200/2289072777_035d9f229b_b.jpg",
+            "https://live.staticflickr.com/3113/2923557253_436c56d38a_b.jpg",
+        },
+        "toolbox-organizer" => new()
+        {
+            "https://live.staticflickr.com/139/337938418_a36c279deb.jpg",
+            "https://live.staticflickr.com/129/337938459_52c83dce73.jpg",
+            "https://live.staticflickr.com/1/1146677_df64d755b7_b.jpg",
+            "https://live.staticflickr.com/3407/4632887921_2d0c7e7b5a_b.jpg",
+        },
+        "plate-frame" => new()
+        {
+            "https://live.staticflickr.com/4/5206551_f1ca4c77c4_b.jpg",
+            "https://live.staticflickr.com/8224/8383095174_dc6bf836e5_b.jpg",
+            "https://live.staticflickr.com/110/362879647_c3d442e71b_b.jpg",
+            "https://live.staticflickr.com/65535/49061550236_0e738c4766.jpg",
+        },
+        _ => new()
+        {
+            $"https://picsum.photos/seed/{seed}-1/1200/1200",
+            $"https://picsum.photos/seed/{seed}-2/1200/1200",
+            $"https://picsum.photos/seed/{seed}-3/1200/1200",
+        },
+    };
 
     public static async Task EnsureIndexesAsync(IServiceProvider sp, MongoContext mongo)
     {

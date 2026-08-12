@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { localized } from '../../core/i18n/localized';
+import { ik } from '../../core/utils/image';
 import { useCartStore } from '../../core/store/cart';
 import { useAuthStore } from '../../core/auth/store';
 import { favoriteRepo } from '../../data/repos/orderRepo';
@@ -15,7 +16,7 @@ export default function ProductCard({ product }: { product: Product }) {
   const addItem = useCartStore(s => s.addItem);
   const user = useAuthStore(s => s.user);
   const [imgFailed, setImgFailed] = useState(false);
-  const [imgSrc, setImgSrc] = useState(product.images?.[0] || '');
+  const [imgSrc, setImgSrc] = useState(ik(product.images?.[0] || '', 600));
   const [isFav, setIsFav] = useState(false);
   const [favBusy, setFavBusy] = useState(false);
 
@@ -32,7 +33,7 @@ export default function ProductCard({ product }: { product: Product }) {
           ) : imgFailed ? (
             <div className="w-full h-full flex flex-col items-center justify-center gap-2">
               <span className="material-symbols-outlined text-4xl text-outline-variant">broken_image</span>
-              <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); setImgFailed(false); setImgSrc(product.images?.[0] || ''); }}
+              <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); setImgFailed(false); setImgSrc(ik(product.images?.[0] || '', 600)); }}
                 className="text-body-sm text-primary underline"
               >
                 Retry

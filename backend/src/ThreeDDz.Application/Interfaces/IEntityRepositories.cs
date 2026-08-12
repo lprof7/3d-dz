@@ -13,6 +13,7 @@ public interface IProductRepository : IRepository<Product>
     Task<List<Product>> SearchAsync(string? text, string? categoryId, decimal? minPrice, decimal? maxPrice, int? minRating, string sort, int skip, int take);
     Task<List<Product>> GetFeaturedAsync(int take);
     Task<List<Product>> GetNewestAsync(int take);
+    Task<List<Product>> GetAllAdminAsync();
     Task<List<Product>> GetByCategoryAsync(string categoryId, int skip, int take);
     Task<List<Product>> GetByCollectionAsync(string collectionId, int skip, int take);
     Task<List<Product>> GetRelatedAsync(string productId, string categoryId, int take);

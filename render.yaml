@@ -1,0 +1,35 @@
+services:
+  - type: web
+    name: 3ddz-api
+    runtime: docker
+    rootDir: .
+    dockerfilePath: ./Dockerfile
+    plan: free
+    healthCheckPath: /api/categories
+    envVars:
+      - key: MONGODB_CONNECTION
+        sync: false
+      - key: MONGODB_DB
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: JWT_ISSUER
+        value: 3d-dz
+      - key: JWT_AUDIENCE
+        value: 3d-dz
+      - key: IMAGEKIT_PUBLIC_KEY
+        sync: false
+      - key: IMAGEKIT_PRIVATE_KEY
+        sync: false
+      - key: IMAGEKIT_URL_ENDPOINT
+        value: https://ik.imagekit.io/hrctyb51w
+
+  - type: static
+    name: 3ddz-front
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    publishPath: ./dist
+    envVars:
+      - key: VITE_API_BASE_URL
+        sync: false

@@ -48,6 +48,12 @@ public class Product
     [BsonElement("fileSizeMb")]
     public decimal? FileSizeMb { get; set; }
 
+    [BsonElement("modelUrl")]
+    public string? ModelUrl { get; set; }
+
+    [BsonElement("modelFormat")]
+    public string? ModelFormat { get; set; }
+
     [BsonElement("license")]
     public string License { get; set; } = "Personal Use";
 

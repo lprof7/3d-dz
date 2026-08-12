@@ -1,5 +1,5 @@
 import api from '../../core/api/client';
-import type { Order, Review, Banner, Wilaya } from '../types';
+import type { Order, Review, Banner, Wilaya, DownloadableProduct } from '../types';
 
 export const orderRepo = {
   getAll: () => api.get('/admin/orders').then(r => r.data.items as Order[]),
@@ -10,7 +10,11 @@ export const orderRepo = {
   updateStatus: (id: string, status: number) =>
     api.put(`/admin/orders/${id}/status`, { status }),
   addNote: (id: string, text: string) =>
-    api.post(`/admin/orders/${id}/notes`, { text })
+    api.post(`/admin/orders/${id}/notes`, { text }),
+  getMyDownloads: () =>
+    api.get('/orders/downloads').then(r => r.data.items as DownloadableProduct[]),
+  getDownloadUrl: (productId: string) =>
+    api.get(`/orders/download/${productId}`).then(r => r.data as { downloadUrl: string; modelFormat?: string })
 };
 
 export const reviewRepo = {

@@ -17,9 +17,12 @@ export interface Product {
   images: string[];
   fileFormats: string[];
   fileSizeMb?: number;
+  modelUrl?: string;
+  modelFormat?: string;
   license: string;
   isFeatured: boolean;
   isPublished: boolean;
+  isDeleted: boolean;
   createdAt: string;
   discountPercent?: number;
   discountStart?: string;
@@ -120,4 +123,15 @@ export interface Wilaya {
   id: string;
   name: string | LocalizedString;
   code: number;
+}
+
+export interface DownloadableProduct {
+  productId: string;
+  productName: string | LocalizedString;
+  images: string[];
+  modelUrl: string;
+  modelFormat?: string;
+  fileFormats: string[];
+  fileSizeMb?: number;
+  license: string;
 }

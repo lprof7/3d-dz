@@ -26,6 +26,7 @@ public interface IProductService
     Task<Product?> GetBySlugAsync(string slug);
     Task<List<Product>> GetFeaturedAsync(int take = 8);
     Task<List<Product>> GetNewestAsync(int take = 8);
+    Task<List<Product>> GetAllAdminAsync();
     Task<List<Product>> GetRelatedAsync(string productId, int take = 4);
 }
 
@@ -59,6 +60,8 @@ public interface IOrderService
     Task<Order> ChangeStatusAsync(string id, int status, string adminUserId);
     Task<Order> AddInternalNoteAsync(string id, string text, string adminUserId);
     Task<List<Order>> GetByFilterAsync(OrderFilter filter);
+    Task<List<string>> GetPurchasedProductIdsAsync(string customerId);
+    Task<List<Product>> GetDownloadableProductsAsync(string customerId);
 }
 
 public class OrderFilter
@@ -152,3 +155,9 @@ public record AnalyticsSummary(
 );
 
 public record TopProductStat(string ProductId, string Name, int OrderCount);
+
+public interface IFileStorageService
+{
+    Task<string> UploadAsync(Stream stream, string fileName, string contentType);
+    Task DeleteAsync(string url);
+}

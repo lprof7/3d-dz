@@ -5,6 +5,7 @@ import { productRepo } from '../../../data/repos/productRepo';
 import { categoryRepo, collectionRepo } from '../../../data/repos/categoryRepo';
 import api from '../../../core/api/client';
 import { localized } from '../../../core/i18n/localized';
+import { compressImage } from '../../../core/utils/image';
 import type { Product, Order, Review, Customer, Category, Collection, Banner } from '../../../data/types';
 
 const statusColors = ['bg-yellow-600/20 text-yellow-300', 'bg-green-600/20 text-green-300', 'bg-red-600/20 text-red-300', 'bg-blue-600/20 text-blue-300'];
@@ -174,6 +175,12 @@ function ProductsTab() {
   const [descLang, setDescLang] = useState('ar');
   const [productSearch, setProductSearch] = useState('');
   const [productCategoryFilter, setProductCategoryFilter] = useState('');
+  const [imageItems, setImageItems] = useState<{ id: string; url: string; file?: File }[]>([]);
+  const [modelFile, setModelFile] = useState<File | null>(null);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const AVAILABLE_FORMATS = ['STL', 'OBJ', 'GLB', 'GLTF', 'STEP', 'IGES', '3MF', 'AMF', 'PLY', 'DAE', 'FBX', 'BLEND'];
 
   const load = useCallback(() => {
     setLoading(true);
@@ -199,20 +206,65 @@ function ProductsTab() {
 
   const openNew = () => {
     setEditing(null);
-    setForm({ name: { ar: '', en: '', fr: '' }, description: { ar: '', en: '', fr: '' }, price: 0, categoryId: '', images: [], fileFormats: [], license: 'Personal Use', isPublished: true, isFeatured: false, currency: 'DZD', discountPercent: 0, discountStart: '', discountEnd: '' });
+    setErrors({});
+    setForm({ name: { ar: '', en: '', fr: '' }, description: { ar: '', en: '', fr: '' }, price: 0, categoryId: '', images: [], fileFormats: [], license: 'Personal Use', isPublished: true, isFeatured: false, currency: 'DZD', discountPercent: 0, discountStart: null, discountEnd: null, fileSizeMb: 0 });
+    setImageItems([]); setModelFile(null);
     setShowForm(true);
   };
   const openEdit = (p: Product) => {
     setEditing(p);
+    setErrors({});
     setForm({ ...p });
+    setImageItems((p.images || []).map(u => ({ id: crypto.randomUUID(), url: u })));
+    setModelFile(null);
     setShowForm(true);
   };
 
+  const moveImage = (index: number, dir: -1 | 1) => {
+    setImageItems(items => {
+      const target = index + dir;
+      if (target < 0 || target >= items.length) return items;
+      const next = [...items];
+      [next[index], next[target]] = [next[target], next[index]];
+      return next;
+    });
+  };
+
+  const addImages = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    const compressed = await Promise.all([...files].map(f => compressImage(f)));
+    const items = compressed.map(f => ({ id: crypto.randomUUID(), url: URL.createObjectURL(f), file: f }));
+    setImageItems(prev => [...prev, ...items]);
+  };
+
+  const validate = () => {
+    const errs: Record<string, string> = {};
+    if (!getLocalized(form.name, 'ar') && !getLocalized(form.name, 'en') && !getLocalized(form.name, 'fr'))
+      errs.name = t('admin.nameRequired');
+    if (!form.categoryId) errs.categoryId = t('admin.categoryRequired');
+    if (!form.price || form.price <= 0) errs.price = t('admin.priceInvalid');
+    if (!form.fileFormats || form.fileFormats.length === 0) errs.fileFormats = t('admin.fileFormatsRequired');
+    setErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
+
   const save = async () => {
+    if (!validate()) return;
     setSaving(true);
     try {
-      if (editing) await productRepo.update(editing.id, form as any);
-      else await productRepo.create(form as any);
+      const fd = new FormData();
+      const existingUrls = imageItems.filter(i => !i.file).map(i => i.url);
+      fd.append('product', JSON.stringify({ ...form, images: existingUrls, discountStart: form.discountStart || null, discountEnd: form.discountEnd || null }));
+      imageItems.filter(i => i.file).forEach(i => fd.append('images', i.file!));
+      if (modelFile) fd.append('modelFile', modelFile);
+      const hasFiles = imageItems.some(i => i.file) || !!modelFile;
+      if (editing) {
+        if (hasFiles) await api.put(`/products/${editing.id}/with-files`, fd);
+        else await productRepo.update(editing.id, form as any);
+      } else {
+        if (hasFiles) await api.post('/products/with-files', fd);
+        else await productRepo.create(form as any);
+      }
       setShowForm(false);
       load();
     } catch (e) { alert(t('common.error')); }
@@ -232,7 +284,19 @@ function ProductsTab() {
 
   if (loading) return <LoadingSpinner />;
 
+  const handleDelete = async (id: string) => {
+    if (deletingId) return;
+    setDeletingId(id);
+    try {
+      await productRepo.delete(id);
+      setProducts(prev => prev.filter(p => p.id !== id));
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   const filteredProducts = products.filter(p => {
+    if (p.isDeleted) return false;
     const name = typeof p.name === 'string' ? p.name : (p.name as any)?.ar || '';
     if (productSearch && !name.toLowerCase().includes(productSearch.toLowerCase())) return false;
     if (productCategoryFilter && p.categoryId !== productCategoryFilter) return false;
@@ -263,65 +327,166 @@ function ProductsTab() {
           <div className="rounded-lg p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto" style={{ backgroundColor: '#1e1f25' }}>
             <h2 className="text-headline-md mb-4">{editing ? t('admin.editProduct') : t('admin.addProduct')}</h2>
             <div className="space-y-3">
-              {langTabs(nameLang, setNameLang)}
-              <input placeholder={`${t('auth.fullName')} (${nameLang})`}
-                value={getLocalized(form.name, nameLang)}
-                onChange={e => setLocalized('name', nameLang, e.target.value)}
-                className="w-full bg-surface-variant text-on-surface rounded px-4 py-3 text-body-sm outline-none focus:ring-1 focus:ring-primary" />
-              {langTabs(descLang, setDescLang)}
-              <textarea placeholder={`${t('product.description')} (${descLang})`}
-                value={getLocalized(form.description, descLang)}
-                onChange={e => setLocalized('description', descLang, e.target.value)}
-                className="w-full bg-surface-variant text-on-surface rounded px-4 py-3 text-body-sm outline-none focus:ring-1 focus:ring-primary min-h-[80px]" />
-              <div className="grid grid-cols-2 gap-3">
-                <input type="number" placeholder={t('product.price')} value={form.price || 0} onChange={e => setForm((f: any) => ({ ...f, price: Number(e.target.value) }))}
-                  className="bg-surface-variant text-on-surface rounded px-4 py-3 text-body-sm outline-none focus:ring-1 focus:ring-primary" />
-                <input type="number" placeholder="Discount %" value={form.discountPercent || 0} onChange={e => setForm((f: any) => ({ ...f, discountPercent: Number(e.target.value) }))}
-                  className="bg-surface-variant text-on-surface rounded px-4 py-3 text-body-sm outline-none focus:ring-1 focus:ring-primary" />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <input type="date" placeholder="Discount start" value={form.discountStart || ''} onChange={e => setForm((f: any) => ({ ...f, discountStart: e.target.value || undefined }))}
-                  className="bg-surface-variant text-on-surface rounded px-4 py-3 text-body-sm outline-none focus:ring-1 focus:ring-primary" />
-                <input type="date" placeholder="Discount end" value={form.discountEnd || ''} onChange={e => setForm((f: any) => ({ ...f, discountEnd: e.target.value || undefined }))}
-                  className="bg-surface-variant text-on-surface rounded px-4 py-3 text-body-sm outline-none focus:ring-1 focus:ring-primary" />
-              </div>
-              <select value={form.categoryId || ''} onChange={e => setForm((f: any) => ({ ...f, categoryId: e.target.value }))}
-                className="w-full bg-surface-variant text-on-surface rounded px-4 py-3 text-body-sm outline-none">
-                <option value="">{t('nav.categories')}</option>
-                {categories.map(c => <option key={c.id} value={c.id}>{localized(c.name, lang)}</option>)}
-              </select>
               <div>
-                <label className="block text-outline text-body-sm mb-1">{t('product.images')}</label>
+                <label className="block text-outline text-body-sm mb-1">{t('admin.productName')}</label>
+                {langTabs(nameLang, setNameLang)}
+                <input value={getLocalized(form.name, nameLang)}
+                  onChange={e => setLocalized('name', nameLang, e.target.value)}
+                  className="w-full bg-surface-variant text-on-surface rounded px-4 py-3 text-body-sm outline-none focus:ring-1 focus:ring-primary" />
+                {errors.name && <p className="text-error text-xs mt-1">{errors.name}</p>}
+              </div>
+              <div>
+                <label className="block text-outline text-body-sm mb-1">{t('product.description')}</label>
+                {langTabs(descLang, setDescLang)}
+                <textarea value={getLocalized(form.description, descLang)}
+                  onChange={e => setLocalized('description', descLang, e.target.value)}
+                  className="w-full bg-surface-variant text-on-surface rounded px-4 py-3 text-body-sm outline-none focus:ring-1 focus:ring-primary min-h-[80px]" />
+              </div>
+              <div>
+                <label className="block text-outline text-body-sm mb-1">{t('product.price')}</label>
+                <div className="grid grid-cols-2 gap-3">
+                  <input type="number" value={form.price || ''} onChange={e => setForm((f: any) => ({ ...f, price: Number(e.target.value) }))}
+                    className="w-full bg-surface-variant text-on-surface rounded px-4 py-3 text-body-sm outline-none focus:ring-1 focus:ring-primary" />
+                  <input type="number" placeholder={t('admin.discountPercent')} value={form.discountPercent || ''}
+                    onChange={e => setForm((f: any) => ({ ...f, discountPercent: Number(e.target.value) }))}
+                    className="w-full bg-surface-variant text-on-surface rounded px-4 py-3 text-body-sm outline-none focus:ring-1 focus:ring-primary" />
+                </div>
+                {errors.price && <p className="text-error text-xs mt-1">{errors.price}</p>}
+              </div>
+              <div>
+                <label className="block text-outline text-body-sm mb-1">{t('admin.discountStart')} / {t('admin.discountEnd')}</label>
+                <div className="grid grid-cols-2 gap-3">
+                  <input type="date" value={form.discountStart || ''} onChange={e => setForm((f: any) => ({ ...f, discountStart: e.target.value || null }))}
+                    className="bg-surface-variant text-on-surface rounded px-4 py-3 text-body-sm outline-none focus:ring-1 focus:ring-primary" />
+                  <input type="date" value={form.discountEnd || ''} onChange={e => setForm((f: any) => ({ ...f, discountEnd: e.target.value || null }))}
+                    className="bg-surface-variant text-on-surface rounded px-4 py-3 text-body-sm outline-none focus:ring-1 focus:ring-primary" />
+                </div>
+              </div>
+              <div>
+                <label className="block text-outline text-body-sm mb-1">{t('nav.categories')}</label>
+                <select value={form.categoryId || ''} onChange={e => setForm((f: any) => ({ ...f, categoryId: e.target.value }))}
+                  className="w-full bg-surface-variant text-on-surface rounded px-4 py-3 text-body-sm outline-none">
+                  <option value="">{t('admin.selectCategory')}</option>
+                  {categories.map(c => <option key={c.id} value={c.id}>{localized(c.name, lang)}</option>)}
+                </select>
+                {errors.categoryId && <p className="text-error text-xs mt-1">{errors.categoryId}</p>}
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-outline text-body-sm mb-1">{t('product.license')}</label>
+                  <input value={form.license || ''} onChange={e => setForm((f: any) => ({ ...f, license: e.target.value }))}
+                    className="w-full bg-surface-variant text-on-surface rounded px-4 py-3 text-body-sm outline-none focus:ring-1 focus:ring-primary" />
+                </div>
+                <div>
+                  <label className="block text-outline text-body-sm mb-1">{t('admin.currency')}</label>
+                  <select value={form.currency || 'DZD'} onChange={e => setForm((f: any) => ({ ...f, currency: e.target.value }))}
+                    className="w-full bg-surface-variant text-on-surface rounded px-4 py-3 text-body-sm outline-none">
+                    <option value="DZD">د.ج - DZD</option>
+                    <option value="EUR">€ - EUR</option>
+                    <option value="USD">$ - USD</option>
+                  </select>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-outline text-body-sm mb-1">{t('product.fileFormats')}</label>
+                  <div className="flex gap-2 mb-1">
+                    <select value="" onChange={e => {
+                      const val = e.target.value;
+                      if (val && !form.fileFormats?.includes(val))
+                        setForm((f: any) => ({ ...f, fileFormats: [...(f.fileFormats || []), val] }));
+                    }}
+                      className="flex-1 bg-surface-variant text-on-surface rounded px-3 py-2 text-body-sm outline-none focus:ring-1 focus:ring-primary">
+                      <option value="">{t('admin.fileFormatPlaceholder')}</option>
+                      {AVAILABLE_FORMATS.filter(f => !form.fileFormats?.includes(f)).map(f => (
+                        <option key={f} value={f}>{f}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="flex gap-1 flex-wrap">
+                    {(form.fileFormats || []).map((fmt: string, i: number) => (
+                      <span key={i} className="inline-flex items-center gap-1 bg-surface-container text-on-surface rounded px-2 py-0.5 text-xs">
+                        {fmt}
+                        <button type="button" onClick={() => setForm((f: any) => ({ ...f, fileFormats: f.fileFormats.filter((_: string, j: number) => j !== i) }))}
+                          className="text-error hover:text-error/80">
+                          <span className="material-symbols-outlined text-xs">close</span>
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                  {errors.fileFormats && <p className="text-error text-xs mt-1">{errors.fileFormats}</p>}
+                </div>
+                <div>
+                  <label className="block text-outline text-body-sm mb-1">{t('product.fileSize')} (MB)</label>
+                  <input type="number" value={form.fileSizeMb || ''} readOnly
+                    className="w-full bg-surface-variant text-on-surface rounded px-4 py-3 text-body-sm outline-none opacity-60 cursor-not-allowed" />
+                </div>
+              </div>
+              <div>
+                <label className="block text-outline text-body-sm mb-1">{t('admin.images')} <span className="text-outline-variant">({t('admin.coverIsFirst')})</span></label>
                 <div className="flex gap-2 flex-wrap mb-2">
-                  {(form.images || []).map((url: string, i: number) => (
-                    <div key={i} className="relative w-16 h-16 rounded overflow-hidden" style={{ backgroundColor: '#282a2f' }}>
-                      <img src={url} alt="" className="w-full h-full object-cover" />
-                      <button type="button" onClick={() => setForm((f: any) => ({ ...f, images: f.images.filter((_: any, j: number) => j !== i) }))}
+                  {imageItems.map((item, i) => (
+                    <div key={item.id} className="relative w-20 h-20 rounded overflow-hidden group" style={{ backgroundColor: '#282a2f' }}>
+                      <img src={item.url} alt="" className="w-full h-full object-cover" />
+                      {i === 0 && (
+                        <span className="absolute bottom-0 left-0 right-0 bg-primary/90 text-on-primary text-[9px] text-center font-semibold py-0.5">{t('admin.cover')}</span>
+                      )}
+                      <button type="button" onClick={() => setImageItems(items => items.filter(x => x.id !== item.id))}
                         className="absolute top-0 right-0 bg-error/80 text-white text-xs w-4 h-4 flex items-center justify-center rounded-bl">
                         ×
                       </button>
+                      <div className="absolute bottom-0 right-0 hidden group-hover:flex gap-0.5">
+                        <button type="button" onClick={() => moveImage(i, -1)} disabled={i === 0}
+                          className="bg-black/60 text-white text-[10px] w-5 h-5 flex items-center justify-center disabled:opacity-30">←</button>
+                        <button type="button" onClick={() => moveImage(i, 1)} disabled={i === imageItems.length - 1}
+                          className="bg-black/60 text-white text-[10px] w-5 h-5 flex items-center justify-center disabled:opacity-30">→</button>
+                      </div>
                     </div>
                   ))}
                 </div>
-                <input type="text" placeholder="Image URL" value={form._newImage || ''}
-                  onChange={e => setForm((f: any) => ({ ...f, _newImage: e.target.value }))}
-                  className="w-full bg-surface-variant text-on-surface rounded px-4 py-3 text-body-sm outline-none focus:ring-1 focus:ring-primary" />
-                <div className="flex gap-2 mt-2">
-                  <button type="button" onClick={() => {
-                    if (form._newImage) setForm((f: any) => ({ ...f, images: [...(f.images || []), f._newImage], _newImage: '' }));
-                  }} className="bg-surface-container text-on-surface px-3 py-1.5 rounded text-body-sm">
-                    {t('admin.add')}
-                  </button>
-                  <label className="bg-surface-container text-on-surface px-3 py-1.5 rounded text-body-sm cursor-pointer">
-                    {t('admin.upload')}
-                    <input type="file" accept="image/*" hidden onChange={async e => {
+                <label className="inline-flex items-center gap-2 bg-surface-container text-on-surface px-4 py-2 rounded text-body-sm cursor-pointer hover:bg-surface-container-high transition-colors">
+                  <span className="material-symbols-outlined text-lg">add_photo_alternate</span>
+                  {t('admin.upload')}
+                  <input type="file" accept="image/*" multiple hidden onChange={e => { addImages(e.target.files); e.target.value = ''; }} />
+                </label>
+              </div>
+              <div>
+                <label className="block text-outline text-body-sm mb-1">{t('admin.model3d')}</label>
+                <div className="flex items-center gap-3">
+                  {modelFile ? (
+                    <div className="flex items-center gap-2 bg-surface-container rounded px-3 py-2 text-body-sm">
+                      <span className="material-symbols-outlined text-outline text-lg">view_in_ar</span>
+                      <span className="text-on-surface truncate max-w-[200px]">{modelFile.name}</span>
+                      <button type="button" onClick={() => setModelFile(null)}
+                        className="text-error hover:text-error/80 ml-1">
+                        <span className="material-symbols-outlined text-base">close</span>
+                      </button>
+                    </div>
+                  ) : form.modelUrl ? (
+                    <div className="flex items-center gap-2 bg-surface-container rounded px-3 py-2 text-body-sm">
+                      <span className="material-symbols-outlined text-outline text-lg">check_circle</span>
+                      <span className="text-outline">{t('admin.modelUploaded')}</span>
+                      <button type="button" onClick={() => setForm((f: any) => ({ ...f, modelUrl: '', modelFormat: '' }))}
+                        className="text-error hover:text-error/80 ml-1">
+                        <span className="material-symbols-outlined text-base">close</span>
+                      </button>
+                    </div>
+                  ) : null}
+                  <label className="inline-flex items-center gap-2 bg-surface-container text-on-surface px-4 py-2 rounded text-body-sm cursor-pointer hover:bg-surface-container-high transition-colors">
+                    <span className="material-symbols-outlined text-lg">upload_file</span>
+                    {modelFile ? t('admin.replace') : t('admin.upload')}
+                    <input type="file" accept=".glb,.gltf,.stl,.obj" hidden onChange={e => {
                       const file = e.target.files?.[0]; if (!file) return;
-                      const fd = new FormData(); fd.append('file', file);
-                      try {
-                        const res = await api.post('/upload', fd);
-                        const url = res.data.url;
-                        setForm((f: any) => ({ ...f, images: [...(f.images || []), url] }));
-                      } catch { alert(t('common.error')); }
+                      setModelFile(file);
+                      const sizeMb = Math.round(file.size / (1024 * 1024) * 100) / 100;
+                      const ext = file.name.split('.').pop()?.toUpperCase();
+                      setForm((f: any) => ({
+                        ...f,
+                        fileSizeMb: sizeMb,
+                        fileFormats: ext && !(f.fileFormats || []).includes(ext)
+                          ? [...(f.fileFormats || []), ext]
+                          : (f.fileFormats || [])
+                      }));
                     }} />
                   </label>
                 </div>
@@ -333,11 +498,11 @@ function ProductsTab() {
                 </label>
                 <label className="flex items-center gap-2 text-body-sm">
                   <input type="checkbox" checked={form.isPublished ?? true} onChange={e => setForm((f: any) => ({ ...f, isPublished: e.target.checked }))} />
-                  Published
+                  {t('admin.published')}
                 </label>
               </div>
               <div className="flex gap-3 pt-2">
-                <button onClick={save} disabled={saving || !getLocalized(form.name, 'ar')}
+                <button onClick={save} disabled={saving}
                   className="flex-1 bg-primary text-on-primary py-3 rounded-lg font-semibold disabled:opacity-50">
                   {saving ? t('common.loading') : t('admin.save')}
                 </button>
@@ -366,6 +531,7 @@ function ProductsTab() {
                 <p className="font-semibold truncate">{name}</p>
                 <p className="text-body-sm text-outline">{p.price?.toLocaleString()} DA</p>
               </div>
+              {p.modelUrl && <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded-full">{p.modelFormat?.toUpperCase()}</span>}
               {p.isFeatured && <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded-full">{t('admin.featured')}</span>}
               <div className="flex gap-2">
                 <button onClick={() => openEdit(p)} className="text-outline hover:text-primary">
@@ -374,8 +540,8 @@ function ProductsTab() {
                 <button onClick={async () => { await productRepo.toggleFeatured(p.id); load(); }} className="text-outline hover:text-primary">
                   <span className="material-symbols-outlined text-lg">star</span>
                 </button>
-                <button onClick={async () => { if (confirm(t('admin.deleteConfirm'))) { await productRepo.delete(p.id); load(); } }} className="text-outline hover:text-error">
-                  <span className="material-symbols-outlined text-lg">delete</span>
+                <button onClick={() => { if (confirm(t('admin.deleteConfirm'))) handleDelete(p.id); }} disabled={deletingId === p.id} className="text-outline hover:text-error disabled:opacity-30">
+                  <span className="material-symbols-outlined text-lg">{deletingId === p.id ? 'sync' : 'delete'}</span>
                 </button>
               </div>
             </div>

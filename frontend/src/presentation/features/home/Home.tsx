@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { lazy, Suspense, useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { productRepo } from '../../../data/repos/productRepo';
@@ -7,6 +7,8 @@ import { bannerRepo } from '../../../data/repos/orderRepo';
 import ProductCard from '../../shared/ProductCard';
 import { localized } from '../../../core/i18n/localized';
 import type { Product, Category, Banner } from '../../../data/types';
+
+const HeroScene = lazy(() => import('./HeroScene'));
 
 export default function Home() {
   const { t, i18n } = useTranslation();
@@ -72,7 +74,6 @@ export default function Home() {
   if (loading) return <div className="flex items-center justify-center min-h-screen"><span className="material-symbols-outlined animate-spin text-primary text-3xl">progress_activity</span></div>;
 
   const currentBanner = banners[heroIndex];
-  const heroBg = currentBanner?.imageUrl || banners[0]?.imageUrl;
   const bannerLink = (url?: string) => {
     if (url === '/explore' || url === '/explore/') return '/catalog';
     return url || '/catalog';
@@ -82,12 +83,16 @@ export default function Home() {
     <div>
       {/* Hero */}
       <section className="relative min-h-[70vh] flex items-center justify-center overflow-hidden"
-        style={heroBg ? { backgroundImage: `url(${heroBg})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}}
         onMouseEnter={() => setPaused(true)}
         onMouseLeave={() => setPaused(false)}
       >
+        <div className="absolute inset-0">
+          <Suspense fallback={<div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 30% 50%, #862200 0%, transparent 60%), radial-gradient(ellipse at 70% 50%, #00363e 0%, transparent 60%)' }} />}>
+            <HeroScene />
+          </Suspense>
+        </div>
         <div className="absolute inset-0" style={{
-          background: heroBg ? 'linear-gradient(180deg, rgba(17,19,24,0.3) 0%, rgba(17,19,24,0.9) 100%)' : 'radial-gradient(ellipse at 30% 50%, #862200 0%, transparent 60%), radial-gradient(ellipse at 70% 50%, #00363e 0%, transparent 60%)'
+          background: 'linear-gradient(180deg, rgba(17,19,24,0.35) 0%, rgba(17,19,24,0.85) 100%)'
         }} />
         {banners.length > 1 && (
           <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2 z-10">

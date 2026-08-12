@@ -97,6 +97,39 @@ public class OrdersController : ControllerBase
         if (order == null || order.CustomerId != UserId) return NotFound();
         return Ok(order);
     }
+
+    [HttpGet("downloads")]
+    public async Task<IActionResult> Downloads()
+    {
+        var products = await _svc.GetDownloadableProductsAsync(UserId);
+        var result = products.Select(p => new
+        {
+            productId = p.Id,
+            productName = p.Name,
+            images = p.Images,
+            modelUrl = p.ModelUrl,
+            modelFormat = p.ModelFormat,
+            fileFormats = p.FileFormats,
+            fileSizeMb = p.FileSizeMb,
+            license = p.License
+        });
+        return Ok(new { items = result });
+    }
+
+    [HttpGet("download/{productId}")]
+    public async Task<IActionResult> Download(string productId)
+    {
+        var ids = await _svc.GetPurchasedProductIdsAsync(UserId);
+        if (!ids.Contains(productId))
+            return BadRequest(new { error = "You have not purchased this product" });
+
+        var product = await _svc.GetDownloadableProductsAsync(UserId);
+        var match = product.FirstOrDefault(p => p.Id == productId);
+        if (match == null || string.IsNullOrWhiteSpace(match.ModelUrl))
+            return BadRequest(new { error = "Download not available" });
+
+        return Ok(new { downloadUrl = match.ModelUrl, modelFormat = match.ModelFormat });
+    }
 }
 
 [Authorize]

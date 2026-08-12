@@ -12,9 +12,10 @@ public class ProductsController : ControllerBase
     private readonly IProductService _svc;
     private readonly IReviewService _reviewSvc;
     private readonly IFavoriteService _favSvc;
+    private readonly IFileStorageService _storage;
 
-    public ProductsController(IProductService svc, IReviewService reviewSvc, IFavoriteService favSvc)
-    { _svc = svc; _reviewSvc = reviewSvc; _favSvc = favSvc; }
+    public ProductsController(IProductService svc, IReviewService reviewSvc, IFavoriteService favSvc, IFileStorageService storage)
+    { _svc = svc; _reviewSvc = reviewSvc; _favSvc = favSvc; _storage = storage; }
 
     [HttpGet("search")]
     public async Task<IActionResult> Search(
@@ -117,6 +118,114 @@ public class ProductsController : ControllerBase
     }
 
     [Authorize(Roles = "Admin")]
+    [HttpPost("with-files")]
+    [RequestSizeLimit(300 * 1024 * 1024)]
+    public async Task<IActionResult> CreateWithFiles()
+    {
+        var productJson = HttpContext.Request.Form["product"].FirstOrDefault();
+        if (string.IsNullOrWhiteSpace(productJson))
+            return BadRequest(new { error = "Product data is required" });
+
+        Product product;
+        try { product = System.Text.Json.JsonSerializer.Deserialize<Product>(productJson, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true })!; }
+        catch { return BadRequest(new { error = "Invalid product JSON" }); }
+
+        var images = HttpContext.Request.Form.Files.Where(f => f.Name == "images").ToList();
+        var modelFile = HttpContext.Request.Form.Files.GetFile("modelFile");
+
+        if (images.Count > 0)
+        {
+            var urls = new List<string>();
+            foreach (var img in images)
+            {
+                using var stream = img.OpenReadStream();
+                var url = await _storage.UploadAsync(stream, img.FileName, img.ContentType);
+                if (string.IsNullOrWhiteSpace(url))
+                    return StatusCode(500, new { error = "Image upload failed" });
+                urls.Add(url);
+            }
+            product.Images = urls;
+        }
+
+        if (modelFile != null)
+        {
+            using var stream = modelFile.OpenReadStream();
+            var url = await _storage.UploadAsync(stream, modelFile.FileName, modelFile.ContentType);
+            if (string.IsNullOrWhiteSpace(url))
+                return StatusCode(500, new { error = "3D model upload failed" });
+            product.ModelUrl = url;
+            product.ModelFormat = Path.GetExtension(modelFile.FileName).TrimStart('.').ToLowerInvariant();
+        }
+
+        var created = await _svc.CreateAsync(product);
+        return Ok(MapProduct(created));
+    }
+
+    [Authorize(Roles = "Admin")]
+    [HttpPut("{id}/with-files")]
+    [RequestSizeLimit(300 * 1024 * 1024)]
+    public async Task<IActionResult> UpdateWithFiles(string id)
+    {
+        var existing = await _svc.GetByIdAsync(id);
+        if (existing == null) return NotFound();
+
+        var productJson = HttpContext.Request.Form["product"].FirstOrDefault();
+        if (!string.IsNullOrWhiteSpace(productJson))
+        {
+            try
+            {
+                var updates = System.Text.Json.JsonSerializer.Deserialize<Product>(productJson, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true })!;
+                existing.Name = updates.Name;
+                existing.Description = updates.Description;
+                existing.Price = updates.Price;
+                existing.DiscountPercent = updates.DiscountPercent;
+                existing.DiscountStart = updates.DiscountStart;
+                existing.DiscountEnd = updates.DiscountEnd;
+                existing.CategoryId = updates.CategoryId;
+                existing.CollectionIds = updates.CollectionIds;
+                existing.License = updates.License;
+                existing.IsFeatured = updates.IsFeatured;
+                existing.IsPublished = updates.IsPublished;
+                existing.FileFormats = updates.FileFormats;
+                existing.FileSizeMb = updates.FileSizeMb;
+                existing.Currency = updates.Currency;
+                existing.Images = updates.Images ?? existing.Images;
+            }
+            catch { return BadRequest(new { error = "Invalid product JSON" }); }
+        }
+
+        var images = HttpContext.Request.Form.Files.Where(f => f.Name == "images").ToList();
+        var modelFile = HttpContext.Request.Form.Files.GetFile("modelFile");
+
+        if (images.Count > 0)
+        {
+            foreach (var img in images)
+            {
+                using var stream = img.OpenReadStream();
+                var url = await _storage.UploadAsync(stream, img.FileName, img.ContentType);
+                if (string.IsNullOrWhiteSpace(url))
+                    return StatusCode(500, new { error = "Image upload failed" });
+                existing.Images.Add(url);
+            }
+        }
+
+        if (modelFile != null)
+        {
+            if (!string.IsNullOrWhiteSpace(existing.ModelUrl))
+                await _storage.DeleteAsync(existing.ModelUrl);
+            using var stream = modelFile.OpenReadStream();
+            var url = await _storage.UploadAsync(stream, modelFile.FileName, modelFile.ContentType);
+            if (string.IsNullOrWhiteSpace(url))
+                return StatusCode(500, new { error = "3D model upload failed" });
+            existing.ModelUrl = url;
+            existing.ModelFormat = Path.GetExtension(modelFile.FileName).TrimStart('.').ToLowerInvariant();
+        }
+
+        var updated = await _svc.UpdateAsync(id, existing);
+        return Ok(MapProduct(updated));
+    }
+
+    [Authorize(Roles = "Admin")]
     [HttpDelete("{id}")]
     public async Task<IActionResult> SoftDelete(string id)
     {
@@ -136,7 +245,7 @@ public class ProductsController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
-        var all = await _svc.GetNewestAsync(1000);
+        var all = await _svc.GetAllAdminAsync();
         return Ok(new { items = all.Select(MapProduct) });
     }
 
@@ -151,7 +260,7 @@ public class ProductsController : ControllerBase
         p.Price, EffectivePrice = p.EffectivePrice, p.Currency,
         p.DiscountPercent, p.DiscountStart, p.DiscountEnd,
         p.CategoryId, p.CollectionIds, p.Images, p.FileFormats,
-        p.FileSizeMb, p.License, p.IsFeatured, p.IsPublished,
+        p.FileSizeMb, p.ModelUrl, p.ModelFormat, p.License, p.IsFeatured, p.IsPublished,
         p.IsDeleted, p.CreatedAt, p.AvgRating, p.ReviewCount
     };
 

@@ -6,6 +6,8 @@ import { reviewRepo, favoriteRepo } from '../../../data/repos/orderRepo';
 import { useAuthStore } from '../../../core/auth/store';
 import { useCartStore } from '../../../core/store/cart';
 import { localized } from '../../../core/i18n/localized';
+import { ik } from '../../../core/utils/image';
+import ModelViewer from '../../shared/ModelViewer';
 import type { Product, Review } from '../../../data/types';
 
 interface ProductDetailResponse {
@@ -135,33 +137,49 @@ export default function ProductDetail() {
     <div className="mx-auto px-4 md:px-10 pt-24 pb-16" style={{ maxWidth: '1440px' }}>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
         <div>
-          <button
-            type="button"
-            onClick={() => product.images[selectedImage] && setZoomImage(product.images[selectedImage])}
-            className="aspect-square rounded-lg overflow-hidden mb-4 w-full block cursor-zoom-in"
-            style={{ backgroundColor: '#1e1f25' }}
-            aria-label="Zoom image"
-          >
-            {product.images[selectedImage] ? (
-              <img src={product.images[selectedImage]} alt={localized(product.name, i18n.language)} className="w-full h-full object-contain" />
+          <div className="relative aspect-square rounded-lg overflow-hidden mb-4 w-full" style={{ backgroundColor: '#1e1f25' }}>
+            {product.images.length > 0 ? (
+              <>
+                <img src={ik(product.images[selectedImage] || product.images[0], 1200)} alt={localized(product.name, i18n.language)} className="w-full h-full object-contain cursor-zoom-in"
+                  onClick={() => setZoomImage(product.images[selectedImage] || product.images[0])} />
+                {product.images.length > 1 && (
+                  <>
+                    <button type="button" onClick={() => setSelectedImage(i => (i - 1 + product.images.length) % product.images.length)}
+                      className="absolute left-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full flex items-center justify-center bg-black/50 text-white hover:bg-black/75"
+                      aria-label="Previous image">
+                      <span className="material-symbols-outlined">chevron_left</span>
+                    </button>
+                    <button type="button" onClick={() => setSelectedImage(i => (i + 1) % product.images.length)}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full flex items-center justify-center bg-black/50 text-white hover:bg-black/75"
+                      aria-label="Next image">
+                      <span className="material-symbols-outlined">chevron_right</span>
+                    </button>
+                    <span className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/60 text-white text-xs px-2 py-0.5 rounded-full">
+                      {selectedImage + 1} / {product.images.length}
+                    </span>
+                  </>
+                )}
+              </>
             ) : (
               <div className="w-full h-full flex items-center justify-center">
                 <span className="material-symbols-outlined text-6xl text-outline-variant">3d_rotation</span>
               </div>
             )}
-          </button>
+          </div>
           {product.images.length > 1 && (
-            <div className="flex gap-2">
+            <div className="grid grid-cols-4 gap-2 mb-4">
               {product.images.map((img, i) => (
-                <button
-                  key={i}
-                  type="button"
-                  onClick={() => setSelectedImage(i)}
-                  className={`w-16 h-16 rounded border-2 overflow-hidden ${selectedImage === i ? 'border-primary' : 'border-transparent'}`}
-                >
-                  <img src={img} alt="" className="w-full h-full object-cover" />
+                <button key={i} type="button" onClick={() => setSelectedImage(i)}
+                  className={`aspect-square rounded-lg overflow-hidden border-2 transition-colors ${i === selectedImage ? 'border-primary' : 'border-transparent opacity-60 hover:opacity-100'}`}
+                  style={{ backgroundColor: '#282a2f' }}>
+                  <img src={ik(img, 300)} alt="" className="w-full h-full object-cover" />
                 </button>
               ))}
+            </div>
+          )}
+          {product.modelUrl && (
+            <div className="aspect-square rounded-lg overflow-hidden w-full" style={{ backgroundColor: '#1e1f25' }}>
+              <ModelViewer modelUrl={product.modelUrl} modelFormat={product.modelFormat} />
             </div>
           )}
         </div>
@@ -341,7 +359,7 @@ export default function ProductDetail() {
               >
                 <div className="aspect-square overflow-hidden" style={{ backgroundColor: '#282a2f' }}>
                   {p.images[0] ? (
-                    <img src={p.images[0]} alt={localized(p.name, i18n.language)} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                    <img src={ik(p.images[0], 600)} alt={localized(p.name, i18n.language)} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
                       <span className="material-symbols-outlined text-4xl text-outline-variant">3d_rotation</span>

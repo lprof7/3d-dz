@@ -112,6 +112,22 @@ public class OrderService : IOrderService
     public Task<List<Order>> GetByFilterAsync(OrderFilter filter) =>
         _orderRepo.GetByFilterAsync(filter);
 
+    public async Task<List<string>> GetPurchasedProductIdsAsync(string customerId)
+    {
+        var orders = await _orderRepo.GetByCustomerAsync(customerId);
+        var confirmed = orders.Where(o => o.Status == OrderStatus.Confirmed || o.Status == OrderStatus.Completed);
+        var ids = confirmed.SelectMany(o => o.Items).Select(i => i.ProductId).Distinct().ToList();
+        return ids;
+    }
+
+    public async Task<List<Product>> GetDownloadableProductsAsync(string customerId)
+    {
+        var ids = await GetPurchasedProductIdsAsync(customerId);
+        if (ids.Count == 0) return [];
+        var products = await _productRepo.FindAsync(p => ids.Contains(p.Id));
+        return products.Where(p => !string.IsNullOrWhiteSpace(p.ModelUrl)).ToList();
+    }
+
     private async Task<string> GenerateReferenceAsync()
     {
         var todayCount = await _orderRepo.GetTodayCountAsync();

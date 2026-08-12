@@ -46,7 +46,9 @@
     "reviewPlaceholder": "شارك تجربتك مع هذا النموذج...",
     "reviewSubmitted": "تم إرسال تقييمك! قيد المراجعة...",
     "writeReview": "اكتب تقييماً",
-    "images": "الصور"
+    "images": "الصور",
+    "noPreview": "لا تتوفر معاينة لهذا المنتج",
+    "availableFormats": "الصيغ المتاحة:"
   },
   "cart": {
     "title": "سلة التسوق",
@@ -110,7 +112,9 @@
     "saved": "تم الحفظ",
     "noOrders": "لا توجد طلبات بعد",
     "noFavorites": "لا توجد منتجات في المفضلة",
-    "orders": "الطلبات"
+    "orders": "الطلبات",
+    "myDownloads": "تحميلاتي",
+    "noDownloads": "لا توجد تحميلات متاحة بعد، قم بشراء منتج وانتظر تأكيد الطلب"
   },
   "order": {
     "status_0": "قيد الانتظار",
@@ -121,6 +125,10 @@
     "date": "التاريخ",
     "items": "المنتجات",
     "total": "الإجمالي",
+    "download": "تحميل",
+    "downloading": "جارٍ التحميل...",
+    "fileSize": "حجم الملف",
+    "modelFormat": "الصيغة",
     "history": "سجل الطلبات",
     "internalNotes": "ملاحظات",
     "orders": "الطلبات"
@@ -164,9 +172,32 @@
     "noData": "لا توجد بيانات كافية بعد",
     "add": "إضافة",
     "upload": "رفع",
+    "replace": "استبدال",
     "addCategory": "إضافة فئة",
     "addCollection": "إضافة مجموعة",
-    "addBanner": "إضافة بانر"
+    "addBanner": "إضافة بانر",
+    "productName": "اسم المنتج",
+    "discountPercent": "نسبة الخصم %",
+    "discountStart": "بداية الخصم",
+    "discountEnd": "نهاية الخصم",
+    "selectCategory": "اختر الفئة",
+    "coverImage": "صورة الغلاف",
+    "images": "صور المنتج",
+    "coverIsFirst": "الصورة الأولى هي صورة الغلاف",
+    "cover": "غلاف",
+    "model3d": "نموذج ثلاثي الأبعاد",
+    "modelUploaded": "تم الرفع",
+    "published": "منشور",
+    "currency": "العملة",
+    "fileFormatPlaceholder": "مثال: STL, OBJ",
+    "fileFormatsRequired": "صيغة ملف واحدة على الأقل مطلوبة",
+    "nameRequired": "اسم المنتج مطلوب",
+    "categoryRequired": "الفئة مطلوبة",
+    "priceRequired": "السعر مطلوب",
+    "priceInvalid": "يجب أن يكون السعر أكبر من 0",
+    "saveSuccess": "تم حفظ المنتج بنجاح",
+    "saveError": "فشل حفظ المنتج",
+    "validationError": "يرجى تصحيح الأخطاء أعلاه"
   },
   "common": {
     "loading": "جاري التحميل...",

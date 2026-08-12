@@ -67,6 +67,8 @@ public class ProductService : IProductService
 
     public Task<List<Product>> GetNewestAsync(int take = 8) => _productRepo.GetNewestAsync(take);
 
+    public Task<List<Product>> GetAllAdminAsync() => _productRepo.GetAllAdminAsync();
+
     public Task<List<Product>> GetRelatedAsync(string productId, int take = 4)
     {
         return _productRepo.GetByIdAsync(productId).ContinueWith(t =>

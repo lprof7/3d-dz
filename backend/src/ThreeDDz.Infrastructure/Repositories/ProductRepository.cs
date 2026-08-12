@@ -89,6 +89,9 @@ public class ProductRepository : MongoRepository<Product>, IProductRepository
         await Collection.Find(p => !p.IsDeleted && p.IsPublished)
             .SortByDescending(p => p.CreatedAt).Limit(take).ToListAsync();
 
+    public async Task<List<Product>> GetAllAdminAsync() =>
+        await Collection.Find(_ => true).SortByDescending(p => p.CreatedAt).ToListAsync();
+
     public async Task<List<Product>> GetByCategoryAsync(string categoryId, int skip, int take) =>
         await Collection.Find(p => p.CategoryId == categoryId && !p.IsDeleted && p.IsPublished)
             .SortByDescending(p => p.CreatedAt).Skip(skip).Limit(take).ToListAsync();

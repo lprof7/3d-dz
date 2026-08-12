@@ -32,6 +32,7 @@ builder.Services.AddScoped<IWilayaRepository, WilayaRepository>();
 
 // Services
 builder.Services.AddScoped<IImageKitService, ImageKitService>();
+builder.Services.AddScoped<IFileStorageService, ImageKitService>();
 builder.Services.AddScoped<ITranslationService, TranslationService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddSingleton<JwtService>();
@@ -95,4 +96,5 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
-app.Run("http://0.0.0.0:5199");
+var port = Environment.GetEnvironmentVariable("PORT") ?? "5199";
+app.Run($"http://0.0.0.0:{port}");
