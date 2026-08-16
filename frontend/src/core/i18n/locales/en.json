@@ -48,6 +48,7 @@
     "writeReview": "Write a Review",
     "images": "Images",
     "noPreview": "No preview available for this product",
+    "modelLoading": "Loading 3D model...",
     "availableFormats": "Available formats:"
   },
   "cart": {

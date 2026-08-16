@@ -48,6 +48,7 @@
     "writeReview": "Écrire un Avis",
     "images": "Images",
     "noPreview": "Aucun aperçu disponible pour ce produit",
+    "modelLoading": "Chargement du modèle 3D...",
     "availableFormats": "Formats disponibles:"
   },
   "cart": {

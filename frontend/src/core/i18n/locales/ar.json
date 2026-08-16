@@ -48,6 +48,7 @@
     "writeReview": "اكتب تقييماً",
     "images": "الصور",
     "noPreview": "لا تتوفر معاينة لهذا المنتج",
+    "modelLoading": "جارٍ تحميل النموذج ثلاثي الأبعاد...",
     "availableFormats": "الصيغ المتاحة:"
   },
   "cart": {
