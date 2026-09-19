@@ -5,7 +5,6 @@ services:
     rootDir: .
     dockerfilePath: ./Dockerfile
     plan: free
-    port: 10000
     healthCheckPath: /api/categories
     envVars:
       - key: MONGODB_CONNECTION
