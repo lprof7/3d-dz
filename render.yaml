@@ -25,12 +25,16 @@ services:
       - key: IMAGEKIT_URL_ENDPOINT
         value: https://ik.imagekit.io/hrctyb51w
 
-  - type: static
+  - type: web
     name: 3ddz-front
     runtime: static
     rootDir: frontend
     buildCommand: npm ci && npm run build
-    publishPath: ./dist
+    staticPublishPath: dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
     envVars:
       - key: VITE_API_BASE_URL
         sync: false
