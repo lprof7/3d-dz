@@ -17,6 +17,11 @@ dist/
 .env
 appsettings.Development.json
 
+# Publish output
+publish/
+*_published/
+*.zip
+
 # OS
 .DS_Store
 Thumbs.db

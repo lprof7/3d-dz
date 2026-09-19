@@ -15,6 +15,10 @@ var builder = WebApplication.CreateBuilder(args);
 // MongoDB
 var connString = Environment.GetEnvironmentVariable("MONGODB_CONNECTION") ?? "mongodb://localhost:27017";
 var dbName = Environment.GetEnvironmentVariable("MONGODB_DB") ?? "3d-dz";
+// TEMP diagnostics: reveal whether the variable actually reaches the process
+// and whether it looks like a valid mongodb(+srv) URI (prefix masked, no secrets).
+Console.Error.WriteLine($"[env] MONGODB_CONNECTION set={!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("MONGODB_CONNECTION"))} prefix={(connString.Length >= 21 ? connString[..21] : connString)}");
+Console.Error.WriteLine($"[env] MONGODB_DB={dbName}");
 var mongo = new MongoContext(connString, dbName);
 builder.Services.AddSingleton(mongo);
 
@@ -81,20 +85,53 @@ builder.Services.AddCors(o => o.AddDefaultPolicy(p => p.AllowAnyOrigin().AllowAn
 
 var app = builder.Build();
 
-// Seed data & indexes
-using (var scope = app.Services.CreateScope())
+// Seed data & indexes — must not block/stop startup when MongoDB is briefly
+// unreachable. Run it, but swallow failures so Kestrel still starts and
+// returns a fast HTTP error instead of a never-terminating 502.5 startup.
+// (Only network calls that respect the MongoClient timeouts run here.)
+try
 {
-    var sp = scope.ServiceProvider;
-    await ThreeDDz.Api.Seed.SeedData.SeedAsync(sp);
-    await ThreeDDz.Api.Seed.SeedData.EnsureIndexesAsync(sp, mongo);
+    using (var scope = app.Services.CreateScope())
+    {
+        var sp = scope.ServiceProvider;
+        await ThreeDDz.Api.Seed.SeedData.SeedAsync(sp);
+        await ThreeDDz.Api.Seed.SeedData.EnsureIndexesAsync(sp, mongo);
+    }
+}
+catch (Exception ex)
+{
+    Console.Error.WriteLine($"[seed] MongoDB unavailable at startup: {ex.Message}");
 }
 
 // Development-only middleware (OpenApi disabled for .NET 10 preview)
+
+// Diagnostics: expose exception details ONLY when explicitly enabled via
+// SHOW_ERROR_DETAILS=1. Production responses stay clean by default.
+if (Environment.GetEnvironmentVariable("SHOW_ERROR_DETAILS") == "1")
+{
+    var dbgConn = Environment.GetEnvironmentVariable("MONGODB_CONNECTION");
+    app.Use(async (ctx, next) =>
+    {
+        try { await next(); }
+        catch (Exception ex)
+        {
+            ctx.Response.StatusCode = 500;
+            ctx.Response.ContentType = "application/json";
+            var prefix = dbgConn is { Length: > 21 } ? dbgConn[..21] : dbgConn ?? "";
+            await ctx.Response.WriteAsJsonAsync(new
+            {
+                error = ex.Message,
+                type = ex.GetType().FullName,
+                mongodb_conn_set = !string.IsNullOrEmpty(dbgConn),
+                mongodb_conn_prefix = prefix
+            });
+        }
+    });
+}
 
 app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
-var port = Environment.GetEnvironmentVariable("PORT") ?? "5199";
-app.Run($"http://0.0.0.0:{port}");
+app.Run();

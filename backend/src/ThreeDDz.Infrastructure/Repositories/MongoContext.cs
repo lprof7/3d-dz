@@ -12,6 +12,9 @@ public class MongoContext
     public MongoContext(string connectionString, string databaseName)
     {
         var settings = MongoClientSettings.FromConnectionString(connectionString);
+        settings.ConnectTimeout = TimeSpan.FromSeconds(5);
+        settings.ServerSelectionTimeout = TimeSpan.FromSeconds(5);
+        settings.SocketTimeout = TimeSpan.FromSeconds(10);
         Client = new MongoClient(settings);
         Database = Client.GetDatabase(databaseName);
     }

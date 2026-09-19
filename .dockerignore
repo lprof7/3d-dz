@@ -1,0 +1,12 @@
+**/bin
+**/obj
+**/node_modules
+**/*.user
+.git
+.gitignore
+publish/
+.env
+.env.*
+*.log
+docs/
+design/

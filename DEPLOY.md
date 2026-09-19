@@ -1,14 +1,14 @@
 # دليل نشر مشروع 3D DZ (الدليل الشامل)
 
-نشر **مجاني تمامًا وبدون بطاقة ائتمانية** = **MongoDB Atlas (M0)** + **Back4App Containers** (الباكند كـ Docker) + **Cloudflare Pages** (الفرونت كـ Static).
+نشر **مجاني تمامًا وبدون بطاقة ائتمانية** = **MongoDB Atlas (M0)** + **myASP.NET** (الباكند كـ ASP.NET Core على IIS/Windows) أو **Render** (بديل Docker — يتطلب ربط بطاقة عند الإنشاء) + **Netlify أو Render Static** (الفرونت).
 
-> بنية الريبو: `backend/` (ASP.NET Core net10.0) + `frontend/` (React + Vite SPA) + ملفات النشر في الجذر: `Dockerfile` + `render.yaml` (مرجع فقط).
+> بنية الريبو: `backend/` (ASP.NET Core net10.0) + `frontend/` (React + Vite SPA) + ملفات النشر في الجذر: `Dockerfile` + `render.yaml` + `scripts/publish-myasp.sh` + `scripts/build-myasp-zip.sh`.
 
-> ⚠️ **لماذا لا Render ولا Koyeb؟** Render يطلب بطاقة للتحقق عند إنشاء أي Web Service (2025–2026). وKoyeb بعد استحواذ **Mistral** (فبراير 2026) لم يعد يقبل مستخدمين جدد إلا على خطط مدفوعة. الخيار المتبقي الموثوق **بدون بطاقة** مع دعم موثق لـ **ASP.NET** هو **Back4App Containers**، والفرونت على **Cloudflare Pages** (مجاني بلا بطاقة).
+> ⚠️ **مهم عن Render**: خطة free على Render تعمل، لكن إنشاء Web Service جديد قد يتطلب بطاقة للتحقق (فبراير 2025–2026). إن لم تصل البطاقة، استخدم **myASP.NET** (free trial 60 يوم بدون بطاقة) — يتبع أدناه في المرحلة 3.
 
 ---
 
-## المرحلة 0 — التحقق المحلي (اختياري لكن مُوصى به)
+## المرحلة 0 — التحقق المحلي
 
 ```bash
 cd backend/src/ThreeDDz.Api
@@ -20,151 +20,117 @@ cd frontend
 npm run dev
 ```
 
-- الباكند يستمع على `http://localhost:5199` (يقرأ `PORT` إن وُجد، والحاوية مثبّتة على `5199` عبر `ASPNETCORE_URLS` في `Dockerfile`).
+- الباكند محليًا على `http://localhost:5199` (launchSettings.json).
 - الفرونت يمرر `/api` عبر proxy إلى 5199.
 
 ---
 
-## المرحلة 1 — MongoDB Atlas (الخيار M0 المجاني)
+## المرحلة 1 — MongoDB Atlas (M0 المجاني)
 
-1. سجّل/ادخل إلى **https://www.mongodb.com/cloud/atlas**.
-2. أنشئ **Cluster جديد** → اختر النوع **M0 Free** (Spark) → اختر مورد قريب منك (e.g. Frankfurt) → أنشئه.
-3. أنشئ **Database User** (بيانات الاعتماد التي سُجّلت في `.env`):
-   - Database Access → Add New Database User → authentication password.
-   - امنحه أذونات **readWriteAnyDatabase** (أو على الأساس `3d-dz`).
-4. فعّل **Network Access**:
-   - → Add IP Address → **Allow Access from Anywhere** (`0.0.0.0/0`) حتى يصل Back4App من أي عنوان.
-5. انسخ **Connection String** من: Cluster → Connect → Drivers:
-   `mongodb+srv://<USER>:<PASSWORD>@<cluster>.mongodb.net/`
-6. ضعها في ملف `.env`:
-   ```
-   MONGODB_CONNECTION=mongodb+srv://<USER>:<PASSWORD>@<cluster>.mongodb.net/
-   MONGODB_DB=3d-dz
-   ```
-   > ⚠️ إذا كانت كلمة المرور تحتوي رموزًا خاصة مثل `!` أو `@`، يجب **ترميزها** (percent-encoding) داخل الرابط، أو استخدام قيمة كلمة المرور حرفيًا في `.env` — تذكّر أن `!` قد تُفسَّر في بعض الصدف (اقتبس القيمة عند الضرورة).
+1. سجّل في **https://www.mongodb.com/cloud/atlas**.
+2. أنشئ **Cluster** → **M0 Free** → مورد قريب (مثال: Frankfurt).
+3. Database Access → Add User (البيانات من `.env`).
+4. Network Access → Add IP → **Allow Access from Anywhere** (`0.0.0.0/0`) حتى يصل أي خادم (Render أو myASP.NET).
+5. انسخ Connection String من: Connect → Drivers.
+6. ضعها في `.env`.
 
 ---
 
-## المرحلة 2 — تخزين الأسرار مقدمًا
+## المرحلة 2 — تخزين الأسرار
 
-املأ ملف `.env` بكل القيم قبل بدء النشر (للصقها في لوحة Back4App لاحقًا):
+املأ `.env` (معفى من git):
 
 ```bash
-# .env (موجود أصلًا في الجذر، ومعفى من git أمنيًا)
-MONGODB_CONNECTION=mongodb+srv://...
+MONGODB_CONNECTION=mongodb+srv://<USER>:<PASSWORD>@<cluster>.mongodb.net/
 MONGODB_DB=3d-dz
-
-# مولّد أمن:  openssl rand -hex 32
-JWT_SECRET=<قيمة عشوائية قوية 32+ حرف>
+JWT_SECRET=<قيمة عشوائية 32+ حرف>
 JWT_ISSUER=3d-dz
 JWT_AUDIENCE=3d-dz
-
-# ImageKit (من حساب ImageKit)
 IMAGEKIT_PUBLIC_KEY=public_xxx=
 IMAGEKIT_PRIVATE_KEY=private_xxx=
 IMAGEKIT_URL_ENDPOINT=https://ik.imagekit.io/<account_id>
-
-# الفرونت — تُملأ بعد النشر مباشرة (انظر المرحلة 5)
 VITE_API_BASE_URL=
 ```
 
 ---
 
-## المرحلة 3 — نشر الباكند على Back4App Containers (بدون بطاقة)
+## المرحلة 3 — النشر على Render (اختياري)
 
-1. تأكد أن الكود **مدفوع** على GitHub: `git status` → مزامنة مع `origin/main`.
-2. سجّل/ادخل إلى **https://www.back4app.com** → اختر **Containers** (خدمة الحاويات).
-3. أنشئ الخدمة:
-   - **Import GitHub Repo** → اربط GitHub → امنح صلاحيات المستودع → اختر `lprof7/3d-dz`.
-   - **App Name:** `3ddz-api`
-   - **Branch:** `main`
-   - **Root Directory:** اتركه فارغًا (الجذر `.` — الـ `Dockerfile` في الجذر).
-   - **Auto Deploy:** فعّلها (أي push للفرع `main` يُعيد البناء تلقائيًا).
-   - **Plan:** **Free** (0.25 CPU / 256 MB RAM / 100 GB نقل — **لا بطاقة**).
-4. **Environment Variables** (اضغط إضافة لكل متغير):
-   - `PORT` = `5199` (مطابق لمنفذ الحاوية)
-   - `MONGODB_CONNECTION` (من المرحلة 1)
-   - `MONGODB_DB` = `3d-dz`
-   - `JWT_SECRET`
-   - `JWT_ISSUER` = `3d-dz`
-   - `JWT_AUDIENCE` = `3d-dz`
-   - `IMAGEKIT_PUBLIC_KEY`
-   - `IMAGEKIT_PRIVATE_KEY`
-   - `IMAGEKIT_URL_ENDPOINT` = `https://ik.imagekit.io/<account_id>`
-5. **Port / Health Check** (اختياري لكن مُستحسن):
-   - المنفذ يُقرأ تلقائيًا من `EXPOSE 5199` في الـ Dockerfile.
-   - **Custom Health Check:** فعّله وضع المسار `http://<app>.back4app.io/api/categories` (يتأكد Back4App أن الخدمة حيّة قبل اعتماد النشر).
-6. اضغط **Create App** وانتظر البناء (بضعة دقائق لصورة .NET). بعدها ستحصل على رابط مثل:
-   `https://<app-name>.back4app.io`
+1. ادفع الكود إلى GitHub (`main`).
+2. في **https://render.com** → **New → Blueprint** → اربط الريبو `lprof7/3d-dz` → يقرأ `render.yaml` تلقائيًا.
+3. سيُنشئ خدمتين: `3ddz-api` (Docker web) و `3ddz-front` (static).
+4. عيّن env vars من لوحة كل خدمة:
+   - `3ddz-api`: `MONGODB_CONNECTION`, `MONGODB_DB`, `JWT_SECRET`, `IMAGEKIT_PUBLIC_KEY`, `IMAGEKIT_PRIVATE_KEY`.
+   - `3ddz-front`: `VITE_API_BASE_URL` = `https://3ddz-api.onrender.com` (يُحقن وقت البناء).
+5. **في Static Site Dashboard أضف قاعدة Rewrite**: Source `/*` → Destination `/index.html` (SPA — إلزامية لأن الواجهة تستخدم BrowserRouter). لا يمكن ضبط ذلك في `render.yaml`.
+6. Atlas Network Access: اجعل `0.0.0.0/0` (عناوين Render متغيّرة).
+7. تحقق: `https://3ddz-api.onrender.com/api/categories` → 200 JSON.
 
-> ⚠️ **محدودية free tier**: 256MB RAM قد تكون ضيقة على تطبيق .NET؛ إن ظهرت أخطاء **Out of Memory** عند البناء/التشغيل، جرّب الترقية لاحقًا أو قلّل استخدام الذاكرة (انظر استكشاف الأخطاء).
+> خطة free:الخدمة تنام بعد 15 دقيقة خمول (أول طلب ~60 ثانية). لا حاجة لبطاقة لإنشاء Static Site; الـ Web Service قد يتطلبها.
+
+---
+
+## المرحلة 3ب — النشر على myASP.NET (بدون بطاقة، المُوصى به)
+
+### 3ب.1 — سجّل التجربة المجانية
+1. **https://www.myasp.net/freeaspnethosting** → سجّل (بدون بطاقة).
+2. فعّل **60-Day Trial**. اختر Datacenter.
+3. ستحصل على **Temp URL** مثل `http://<username>-001-site1.myASP.NET` + FTP info.
+
+### 3ب.2 — أنشئ حزمة السورس
+
+> ⚠️ خيار **Upload A Zip File** في myASP.NET **يبني من السورس** عبر Railpack: ينسخ `*.csproj` الجذر أولًا → `dotnet restore`، ثم ينسخ الشجرة → `dotnet publish --no-restore`. لذلك مشروع الجذر الذي فيه `ProjectReference` لمشاريع فرعية **يفشل** بـ `NETSDK1004`. السكربت يدمج المشاريع الأربعة في مشروع واحد مسطّح (ينزع كل ProjectReference ويجمع الحزم في csproj الجذر).
+
+```bash
+bash scripts/build-myasp-zip.sh
+```
+تنتج `publish/myasp-source-deploy.zip`.
+
+### 3ب.3 — ارفع وضبط
+1. لوحة myASP.NET → **Deployment → Upload A Zip File** → ارفع `publish/myasp-source-deploy.zip`.
+2. افتح `http://<temp-url>/api/categories`.
+3. عيّن env vars: لوحة التحكم → **Advance → Pool Manager → Actions → Environment Variables**: `MONGODB_CONNECTION`, `MONGODB_DB=3d-dz`, `JWT_SECRET`, `JWT_ISSUER=3d-dz`, `JWT_AUDIENCE=3d-dz`, `IMAGEKIT_PUBLIC_KEY`, `IMAGEKIT_PRIVATE_KEY`, `IMAGEKIT_URL_ENDPOINT`. (إن لم تصل المتغيرات للعملية، استخدم `SHOW_ERROR_DETAILS=1` مؤقتًا لفحص `mongodb_conn_set`.)
+
+### 3ب.4 — بديل FTP
+```bash
+bash scripts/publish-myasp.sh
+```
+ينتج `publish/myasp` + `publish/myasp-deploy.zip` (OutOfProcess + env vars محقونة في web.config). ارفع المحتويات عبر FileZilla (وضع Passive).
+
+> OutOfProcess مفروض في `ThreeDDz.Api.csproj` لأنه مطلوب للاستضافة المشتركة.
 
 ---
 
 ## المرحلة 4 — إبقاء الباكند مستيقظًا
 
-Back4App Containers لا تُغفل الخدمة تلقائيًا مثل Render/Koyeb في الحالة العامة، لكن للتأكد من استمراريتها ومراقبة الحالة:
-
-1. سجّل في **https://cron-job.org** (مجاني تمامًا).
-2. أنشئ **Cronjob** جديد:
-   - **Title:** `Keep 3ddz-api awake`
-   - **URL:** `https://<app-name>.back4app.io/api/categories` ← نقطة ترجع `200` سريعًا.
-   - **Schedule:** كل 10 دقائق (أو `*/10 * * * *`).
-   - فعّل وأبقِه نشطًا.
-3. تحقق من السجل: كل زيارة سترى `200 OK`.
+على Render free: أضف cron عن طريق **https://cron-job.org** يستدعي `https://3ddz-api.onrender.com/api/categories` كل 10 دقائق.
 
 ---
 
-## المرحلة 5 — نشر الفرونت على Cloudflare Pages (بدون بطاقة)
+## المرحلة 5 — نشر الفرونت
 
-1. سجّل/ادخل إلى **https://dash.cloudflare.com** → **Workers & Pages** → **Create** → **Pages** → **Connect to Git**.
-2. اختر الريبو `lprof7/3d-dz` → **Begin setup**.
-3. الإعدادات:
-   - **Framework preset:** `Vite`
-   - **Build command:** `npm ci && npm run build`
-   - **Build output directory:** `dist`
-   - **Root directory:** `frontend` (إن دعمت الواجهة؛ وإلا فاجعل الريبو الفرونت منفصلًا أو استخدم build config).
-4. **Environment variables** — أضفها قبل أول بناء:
-   - `VITE_API_BASE_URL` = `https://<app-name>.back4app.io` (بدون `/api` — الـ client يلحق `/api/...` تلقائيًا).
-5. اضغط **Save and Deploy**. بعد البناء ستحصل على رابط:
-   `https://<project>.pages.dev`
-
-**إضافة `_redirects` لمسارات SPA** (لمنع 404 عند الدخول المباشر لمسار مثل `/product/xxx`):
-- الملف موجود أصلًا: `frontend/public/_redirects` بمحتوى:
-  ```
-  /* /index.html 200
-  ```
-- Cloudflare Pages يقرأه تلقائيًا من مجلد النشر.
+على Render: كما في المرحلة 3 (استخدم الـ static site من blueprint). على Netlify:
+- `netlify.toml` يضبط build و SPAs.
+- **Env var** إلزامي: `VITE_API_BASE_URL` = رابط الباكند بدون `/api`.
+- `frontend/public/_redirects` يمنع 404 للمسارات العميقة.
 
 ---
 
-## المرحلة 6 — ربط الفرونت بالباكند (VITE_API_BASE_URL)
+## المرحلة 6 — ربط الفرونت بالباكند
 
-بعد اكتمال نشر الخدمتين، ستحصل على رابطين:
-- الباكند: `https://<app-name>.back4app.io`
-- الفرونت: `https://<project>.pages.dev`
-
-الآن:
-1. في Cloudflare Pages ← المشروع ← **Settings → Environment variables** ← تأكد من `VITE_API_BASE_URL` = `https://<app-name>.back4app.io`.
-2. إذا غيّرته بعد أول بناء، أعد البناء (**Create new deployment**).
-3. افتح رابط الفرونت وتأكد من:
-   - ظهور المنتجات والصور الحقيقية.
-   - عمل الفلاتر والبحث (تصل للباكند).
-   - مسارات SPA المباشرة (`/product/xxx`) تعمل (بفضل `_redirects`).
-   - إعدادات CORS: الباكند يستخدم `AllowAnyOrigin` — لا حاجة لتغيير.
+- `VITE_API_BASE_URL` = `https://<backend-url>` (HTTPS يُفضَّل).
+- CORS: الباكند يستخدم `AllowAnyOrigin`.
 
 ---
 
-## المرحلة 7 — التحقق الكامل (Check-list)
+## المرحلة 7 — التحقق الكامل
 
-- [ ] `GET https://<app-name>.back4app.io/api/categories` → 200 JSON.
-- [ ] `GET https://<app-name>.back4app.io/api/products` → قائمة المنتجات.
+- [ ] `GET https://<backend>/api/categories` → 200 JSON.
 - [ ] تسجيل دخول admin → يعمل (`admin@3ddz.dz`).
-- [ ] رفع صورة منتج من لوحة أدمن → يعمل عبر ImageKit (التحقق من `IMAGEKIT_PRIVATE_KEY`).
+- [ ] رفع صورة منتج → يعمل عبر ImageKit.
 - [ ] مسارات SPA المباشرة (منع 404).
-- [ ] ping الخدمة عبر cron-job.org نشط (آخر تنفيذ `200 OK`).
-- [ ] نموذج 3D (GLB) يُعرض في صفحة المنتج / الصفحة الرئيسية.
-- [ ] لم تُستخدم أي بطاقة ائتمانية في أي خطوة.
+- [ ] نموذج 3D (GLB) يُعرض.
+- [ ] لم تُستخدم بطاقة ائتمانية (إن سار النشر على myASP.NET).
 
 ---
 
@@ -172,33 +138,14 @@ Back4App Containers لا تُغفل الخدمة تلقائيًا مثل Render/
 
 | العَرَض | السبب | الحل |
 |---|---|---|
-| فشل البناء: "no Dockerfile" | الـ Dockerfile غير موجود في root directory | تأكد أن Root Directory فارغ (`.`) والـ `Dockerfile` في الجذر |
-| Health check failed | الخدمة لا تستجيب على المنفذ | تحقق أن الحاوية تستمع على `5199` وأن `PORT=5199`؛ راقب Running Logs |
-| Out of Memory عند البناء/التشغيل | 256MB ضيقة على .NET | جرّب تحسين الذاكرة (أدناه) أو ارفع الخطة لاحقًا |
-| الفرونت لا يجد البيانات (404/Network) | `VITE_API_BASE_URL` فارغ أو خاطئ | المرحلة 6؛ أعد البناء بعد التعديل |
-| فشل رفع صورة في الأدمن | `IMAGEKIT_PRIVATE_KEY` غير مضبوطة | تحقق من القيمة في Back4App |
-| `Application` ينهار عند أول تشغيل | `MONGODB_CONNECTION` غير صالح | تحقق من سلسلة الاتصال وأذونات الشبكة |
-
-**لتقليل استخدام ذاكرة .NET داخل الـ Dockerfile** (إن صادفت OOM) — أضف إلى قسم build قبل `dotnet publish`:
-```dockerfile
-ENV DOTNET_gcServer=0
-RUN dotnet publish ... -p:PublishTrimmed=false
-```
-ثم في قسم runtime:
-```dockerfile
-ENV DOTNET_gcServer=0
-ENV ASPNETCORE_ENVIRONMENT=Production
-```
+| myASP.NET: `NETSDK1004` / "Skipping project" | ProjectReference لفرعية في جذر ZIP | أعد `bash scripts/build-myasp-zip.sh` (مشروع واحد مسطّح) |
+| `Upload` يفشل: "Could not identify a project root" | رُفع ناتج publish بدل السورس | ارفع `publish/myasp-source-deploy.zip` |
+| 500 / Timeout MongoDB: `Servers: []` | لا DNS/خروج خارجي من الاستضافة (myASP.NET يحجب خروج Atlas في بعض الخطط) | انتقل إلى Render (وصول إنترنت كامن) أو فعّل متغيرات من Pool Manager |
+| Mixed Content | `VITE_API_BASE_URL` http والفرونت https | فعّل SSL/HTTPS أو غيّر الرابط لـ https |
+| الفرونت لا يجد البيانات | `VITE_API_BASE_URL` فارغ/خاطئ | المرحلة 6؛ أعد البناء |
+| فشل رفع صورة | `IMAGEKIT_PRIVATE_KEY` غير مضبوطة | أعد ضبطها في البيئة |
+| (Render) صفحة تحميل طويلة لأول زيارة | خدمة free نائمة بعد 15 دقيقة | انتظر ~60 ثانية أو أضف cron |
 
 ---
 
-## تحديثات مستقبلية (اختياري)
-
-- **نطاق مخصص مجاني**: استخدم `*.back4app.io` / `*.pages.dev` كما هو الآن — بدون تكلفة.
-- **ImageKit للـ GLB**: ارفع ملفات `.glb` عبر نفس آليات الرفع الموجودة (ستعمل تلقائيًا عبر `IMAGEKIT_*`).
-- **ترقية**: عند الحاجة، ارفع بـ Back4App Shared Plan (~$5/شهر، 512MB) للمزيد من الـ RAM.
-- **مرجع Render**: `render.yaml` ما زال موجودًا كمرجع — لكن إنشاء Web Service عليه يتطلب بطاقة حاليًا.
-
----
-
-> **أمان**: `.env` معفى من GitHub. لا ترفع أبدًا `appsettings.Development.json` ولا أي ملف يحتوي مفاتيح/tokens إلى الريبو. عند استخدام GitHub MCP في opencode، ضع التوكن كمرجع `${GITHUB_TOKEN}` أو env var بدل نص صريح.
+> **أمان**: `.env` معفى من GitHub. لا ترفع `appsettings.Development.json` ولا ملفات بمفاتيح إلى الريبو. عند استخدام GitHub MCP في opencode، استخدم `${GITHUB_TOKEN}` أو env var بدل نص صريح.

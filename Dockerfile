@@ -17,6 +17,6 @@ RUN dotnet publish backend/src/ThreeDDz.Api/ThreeDDz.Api.csproj -c Release -o /o
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
 COPY --from=build /out ./
-ENV ASPNETCORE_URLS=http://+:5199
+ENV ASPNETCORE_URLS=http://+:${PORT:-5199}
 EXPOSE 5199
 ENTRYPOINT ["dotnet", "ThreeDDz.Api.dll"]
