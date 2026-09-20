@@ -17,25 +17,34 @@ export default function Auth() {
   const next = searchParams.get('next') || '/';
   const [forgotSent, setForgotSent] = useState(false);
   const [forgotMsg, setForgotMsg] = useState('');
-  const [pwMismatch, setPwMismatch] = useState('');
+  const [clientErr, setClientErr] = useState('');
 
-  const toggle = (m: string) => { clearError(); setMode(m); setForgotSent(false); setForgotMsg(''); setPwMismatch(''); };
+  const toggle = (m: string) => { clearError(); setMode(m); setForgotSent(false); setForgotMsg(''); setClientErr(''); };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       if (mode === 'login') {
-        await login(form.email, form.password);
+        await login(form.email.trim(), form.password);
         navigate(next, { replace: true });
       } else if (mode === 'register') {
-        if (form.password !== form.confirmPassword) { setPwMismatch(t('auth.passwordMismatch')); return; } else { setPwMismatch(''); }
-        await register({ fullName: form.fullName, email: form.email, phone: form.phone, password: form.password });
+        const email = form.email.trim();
+        if (form.fullName.trim().length < 2) { setClientErr(t('auth.errNameShort')); return; }
+        if (form.phone.length > 20) { setClientErr(t('auth.errPhoneLong')); return; }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setClientErr(t('auth.errEmailInvalid')); return; }
+        if (form.password.length < 6) { setClientErr(t('auth.errPasswordShort')); return; }
+        if (form.password !== form.confirmPassword) { setClientErr(t('auth.passwordMismatch')); return; }
+        setClientErr('');
+        await register({ fullName: form.fullName, email, phone: form.phone, password: form.password });
         navigate(next, { replace: true });
       } else if (mode === 'forgot') {
-        await api.post('/auth/forgot-password', { email: form.email });
+        await api.post('/auth/forgot-password', { email: form.email.trim() });
         setForgotSent(true);
         setForgotMsg(t('auth.resetSent'));
       } else if (mode === 'reset') {
+        if (form.password.length < 6) { setClientErr(t('auth.errPasswordShort')); return; }
+        if (form.password !== form.confirmPassword) { setClientErr(t('auth.passwordMismatch')); return; }
+        setClientErr('');
         await api.post('/auth/reset-password', { token: form.token, newPassword: form.password });
         setForgotMsg(t('auth.resetSuccess'));
         setTimeout(() => toggle('login'), 2000);
@@ -53,35 +62,35 @@ export default function Auth() {
           {mode === 'login' ? t('auth.loginTitle') : mode === 'register' ? t('auth.registerTitle') : mode === 'forgot' ? t('auth.forgotPassword') : t('auth.resetPassword')}
         </h1>
 
-        {error && <div className="bg-error-container text-on-error-container p-3 rounded mb-4 text-body-sm">{error}</div>}
-        {forgotMsg && <div className="bg-green-900/30 text-green-300 p-3 rounded mb-4 text-body-sm">{forgotMsg}</div>}
-        {pwMismatch && <div className="bg-error-container text-on-error-container p-3 rounded mb-4 text-body-sm">{pwMismatch}</div>}
+        {error && <div className="font-semibold border border-error/50 bg-error-container text-on-error-container p-3 rounded mb-4 text-body-sm">⚠ {error}</div>}
+        {clientErr && <div className="font-semibold border border-error/50 bg-error-container text-on-error-container p-3 rounded mb-4 text-body-sm">⚠ {clientErr}</div>}
+        {forgotMsg && <div className="font-semibold border border-green-600/40 bg-green-900/30 text-green-300 p-3 rounded mb-4 text-body-sm">✓ {forgotMsg}</div>}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {mode === 'register' && (
             <>
-              <input placeholder={t('auth.fullName')} required value={form.fullName}
+              <input placeholder={t('auth.fullName')} required minLength={2} value={form.fullName}
                 onChange={e => setForm(f => ({ ...f, fullName: e.target.value }))}
                 className="w-full bg-surface-container text-on-surface border border-outline-variant rounded px-4 py-3" />
-              <input placeholder={t('auth.phone')} required value={form.phone}
+              <input type="tel" placeholder={t('auth.phone')} required maxLength={20} value={form.phone}
                 onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
                 className="w-full bg-surface-container text-on-surface border border-outline-variant rounded px-4 py-3" />
             </>
           )}
-          {(mode === 'login' || mode === 'forgot') && (
-            <input type="email" placeholder={t('auth.email')} required value={form.email}
+          {(mode === 'login' || mode === 'register' || mode === 'forgot') && (
+            <input type="email" inputMode="email" placeholder={t('auth.email')} required value={form.email}
               onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
               className="w-full bg-surface-container text-on-surface border border-outline-variant rounded px-4 py-3" />
           )}
           {mode !== 'forgot' && mode !== 'reset' && (
-            <input type="password" placeholder={t('auth.password')} required value={form.password}
+            <input type="password" placeholder={t('auth.password')} required minLength={mode === 'register' ? 6 : undefined} value={form.password}
               onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
               className="w-full bg-surface-container text-on-surface border border-outline-variant rounded px-4 py-3" />
           )}
           {mode === 'reset' && (
             <>
               <input type="hidden" value={form.token} />
-              <input type="password" placeholder={t('auth.newPassword')} required value={form.password}
+              <input type="password" placeholder={t('auth.newPassword')} required minLength={6} value={form.password}
                 onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
                 className="w-full bg-surface-container text-on-surface border border-outline-variant rounded px-4 py-3" />
               <input type="password" placeholder={t('auth.confirmPassword')} required value={form.confirmPassword}

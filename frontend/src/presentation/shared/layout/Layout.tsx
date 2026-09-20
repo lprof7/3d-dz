@@ -52,7 +52,7 @@ export function Header() {
     <header className="fixed top-0 left-0 right-0 z-50" style={{ backgroundColor: '#111318cc', backdropFilter: 'blur(12px)' }}>
       <div className="mx-auto flex items-center justify-between px-4 md:px-10 h-16 gap-4" style={{ maxWidth: '1440px' }}>
         <Link to="/" className="flex items-center gap-2 shrink-0">
-          <img src="/logo.png" alt="3D DZ" className="h-9 w-auto" />
+          <img src="/logo.png" alt="3D DZ" className="h-16 w-auto" />
         </Link>
 
         <nav className="hidden md:flex items-center gap-6 shrink-0">

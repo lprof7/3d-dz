@@ -1,5 +1,40 @@
 import { create } from 'zustand';
+import i18n from '../i18n/i18n';
 import api from '../api/client';
+
+function extractError(err: any, fallback: string): string {
+  const data = err?.response?.data;
+  if (!data) return fallback;
+  if (data.error) {
+    const msg = String(data.error);
+    if (/already registered|already exists/i.test(msg)) return i18n.t('auth.emailAlreadyRegistered');
+    if (/banned/i.test(msg)) return i18n.t('auth.accountBanned');
+    if (/invalid|incorrect/i.test(msg)) return i18n.t('auth.invalidCredentials');
+    return msg;
+  }
+  if (data.errors && typeof data.errors === 'object') {
+    const labelMap: Record<string, string> = {
+      Email: i18n.t('auth.email'),
+      Password: i18n.t('auth.password'),
+      FullName: i18n.t('auth.fullName'),
+      Phone: i18n.t('auth.phone')
+    };
+    const parts: string[] = [];
+    Object.entries(data.errors).forEach(([field, list]) => {
+      const label = labelMap[field] ?? field;
+      const msgs: string[] = Array.isArray(list) ? (list as string[]) : [String(list)];
+      msgs.forEach((m: string) => {
+        if (/at least 6 characters/i.test(m)) parts.push(`${label}: ${i18n.t('auth.errPasswordShort')}`);
+        else if (/at least 2 characters/i.test(m)) parts.push(`${label}: ${i18n.t('auth.errNameShort')}`);
+        else if (/must not be empty/i.test(m)) parts.push(`${label}: ${i18n.t('auth.errRequired')}`);
+        else if (/valid email/i.test(m)) parts.push(`${label}: ${i18n.t('auth.errEmailInvalid')}`);
+        else parts.push(`${label}: ${m}`);
+      });
+    });
+    return parts.join(' · ') || fallback;
+  }
+  return fallback;
+}
 
 export interface User {
   id: string;
@@ -38,7 +73,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       localStorage.setItem('user', JSON.stringify(data.user));
       set({ user: data.user, token: data.token, loading: false });
     } catch (err: any) {
-      const msg = err.response?.data?.error || 'Invalid credentials';
+      const msg = extractError(err, i18n.t('auth.invalidCredentials'));
       set({ error: msg, loading: false });
       throw new Error(msg);
     }
@@ -52,7 +87,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       localStorage.setItem('user', JSON.stringify(data.user));
       set({ user: data.user, token: data.token, loading: false });
     } catch (err: any) {
-      const msg = err.response?.data?.error || 'Registration failed';
+      const msg = extractError(err, i18n.t('auth.registerFailed'));
       set({ error: msg, loading: false });
       throw new Error(msg);
     }
