@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { productRepo } from '../../../data/repos/productRepo';
@@ -7,8 +7,6 @@ import { bannerRepo } from '../../../data/repos/orderRepo';
 import ProductCard from '../../shared/ProductCard';
 import { localized } from '../../../core/i18n/localized';
 import type { Product, Category, Banner } from '../../../data/types';
-
-const HeroScene = lazy(() => import('./HeroScene'));
 
 export default function Home() {
   const { t, i18n } = useTranslation();
@@ -40,6 +38,10 @@ export default function Home() {
     const id = setInterval(() => setHeroIndex(i => (i + 1) % banners.length), 5000);
     return () => clearInterval(id);
   }, [banners.length, paused]);
+
+  useEffect(() => {
+    if (banners.length > 0 && heroIndex >= banners.length) setHeroIndex(0);
+  }, [banners.length, heroIndex]);
 
   const featuredRef = useRef<HTMLDivElement>(null);
   const newestRef = useRef<HTMLDivElement>(null);
@@ -86,11 +88,20 @@ export default function Home() {
         onMouseEnter={() => setPaused(true)}
         onMouseLeave={() => setPaused(false)}
       >
-        <div className="absolute inset-0">
-          <Suspense fallback={<div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 30% 50%, #862200 0%, transparent 60%), radial-gradient(ellipse at 70% 50%, #00363e 0%, transparent 60%)' }} />}>
-            <HeroScene />
-          </Suspense>
-        </div>
+        <div className="absolute inset-0" style={{
+          background: 'radial-gradient(ellipse at 30% 50%, #163a5c 0%, transparent 60%), radial-gradient(ellipse at 70% 50%, #1a3a4f 0%, transparent 60%)'
+        }} />
+        {banners.length > 0 && banners.map((b, i) => (
+          <div key={i} className={`absolute inset-0 transition-opacity duration-1000 ${i === heroIndex ? 'opacity-100' : 'opacity-0'}`}>
+            <img
+              src={b.imageUrl}
+              alt={b.title ? localized(b.title, lang) : ''}
+              loading={i === 0 ? 'eager' : 'lazy'}
+              className="w-full h-full object-cover"
+              onError={e => { e.currentTarget.style.display = 'none'; }}
+            />
+          </div>
+        ))}
         <div className="absolute inset-0" style={{
           background: 'linear-gradient(180deg, rgba(17,19,24,0.35) 0%, rgba(17,19,24,0.85) 100%)'
         }} />
@@ -160,5 +171,3 @@ export default function Home() {
     </div>
   );
 }
-
-
